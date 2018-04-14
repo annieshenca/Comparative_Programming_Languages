@@ -1,9 +1,10 @@
 #!/afs/cats.ucsc.edu/courses/cmps112-wm/usr/racket/bin/mzscheme -qr
-
-;; Annie Shen (ashen7)
-;; CMPS 112 - Spring 2018
-;; Asg1 - Due Apr 17, 2018
 ;;
+;; Annie Shen (ashen7) && Ruben Ayestas (rayestas)
+;; CMPS 112 - Spring 2018
+;; Asg1 - Functionally Scheme
+;;
+
 ;; $Id: sbi.scm,v 1.3 2016-09-23 18:23:20-07 - - $
 ;;
 ;; NAME
@@ -60,3 +61,8 @@
               (write-program-by-line sbprogfile program))))
 
 (main (vector->list (current-command-line-arguments)))
+
+
+;;
+;; Added functionalities below
+;;
