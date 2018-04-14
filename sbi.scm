@@ -1,4 +1,5 @@
 #!/afs/cats.ucsc.edu/courses/cmps112-wm/usr/racket/bin/mzscheme -qr
+
 ;;
 ;; Annie Shen (ashen7) && Ruben Ayestas (rayestas)
 ;; CMPS 112 - Spring 2018
@@ -65,4 +66,56 @@
 
 ;;
 ;; Added functionalities below
+;;
+;; To dos:
+;; - set up hash table
+;;    - function hash
+;;    - variable hash
+;;    - label hash
+;; - do init scan of the test file looking for labels and store into hash (recur on cdr)
+;;
+;;
+;;
+;/
+;; Recurse on cdr until null. "Goto" may take you back to the top of the code though!
+;; Check if it's a pair by: (pari ? {list})
+
+
+;; Below are sudo codes from MSI
+; (define (mytable make-hash))
+;   (for-each
+;     (lambda (pair)
+;       (function-put? (car pair)(cdr pair))))
+
+; (define (step-through program)
+;   (if null? program) 0
+;     (let line1 (car program))
+;     (let rest (cdr program))
+;     ;; check if I just evaluated a "goto"
+;
+;     ;; recurse through rest, which is the cdr
+; )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ;;
