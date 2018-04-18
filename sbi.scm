@@ -147,8 +147,7 @@
             (void); If false, do nothing.
         )
         (void)
-    )
-)
+))
 
 ; Prints out hash table for testing purposes!
 (define (printHash hash)
@@ -167,9 +166,9 @@
     (if (symbol? expr)
         ; true, expr is an symbol.
         ; then if *variable-table* already has the current expr.
-        ; (if (hash-has-key? *variable-table* expr)
-        ;     (hash-ref *variable-table* expr) ; true
-        ;     (printf "~s does not exist~n" expr)) ; false
+        (if (hash-has-key? *variable-table* expr)
+            (hash-ref *variable-table* expr) ; true
+            (printf "~s does not exist~n" expr)) ; false
         ; false, expr is NOT an symbol.
         (if (number? expr)
             ; true, expr is a number
@@ -181,14 +180,20 @@
                 ; Store rest of the expression and loop on that
                 (tail (cdr expr)))
             (apply op (map evalExpression tail)))
-        )
-        (void)
-    )
-)
+)))
 
 ; When the statment of the line is using 'print', come here and be able to
 ; print out what the statement wanted.
 (define (printInStatement state)
+    ; (cond [(statement) (ONLY GET HERE IF STATEMENT IS TRUE)]) ; Move on if false
+    ; (cond
+    ;     [ (null? (cdr s)) (printf "~n") ]
+    ;     [ (string? (cadr s))
+    ;
+    ;     ]
+    ;
+    ; )
+
     (cond
         ( (null? (cdr state)) (printf "~n") ) ; If print "", print nothing
         ( (string? (cadr state))
@@ -200,7 +205,8 @@
                 (printf "~s~s" (cadr state) (evalExpression(cadr state)) )
             )
             ; If cadr of state is NOT string
-            (printf "~n"))
+            (printf "~n")
+        )
         (else (printf "~s~n" (evalExpression(cadr state))))
     )
 )
@@ -216,7 +222,7 @@
             )
             ; If false == a line w/ all three
             (if (eqv? (car(car(cddr line))) 'print)
-                (printInStatement(car(cdr line)))
+                (printInStatement(car(cddr line)))
                 (void)
             )
         )
