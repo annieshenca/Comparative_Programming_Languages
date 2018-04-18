@@ -138,6 +138,28 @@
     )
 )
 
+; Put new labels into *label-table*
+(define (setNewLabel line)
+    (if (not (null? (cdr line)))
+        ; If true, then check if there is no nill
+        (if (not (pair? (cadr line)))
+            (hash-set! *label-table* (cadr line) line)
+            (void); If false, do nothing.
+        )
+        (void)
+    )
+)
+
+; Prints out hash table for testing purposes!
+(define (printHash hash)
+    (map (lambda (key) (printf "key:~s value:~s~n" key (hash-ref hash key))) (hash-keys hash))
+)
+
+; Check if the list being passed in has a label.
+(define (lineHasLabel list)
+    (hash-has-key? *label-table* (cadr list))
+)
+
 ; Evaluate the expression by using loop that goes through each line
 ; of the file and treats the file as a huge link list.
 (define (evalExpression expr)
@@ -160,34 +182,9 @@
                 (tail (cdr expr)))
             (apply op (map evalExpression tail)))
         )
+        (void)
     )
 )
-
-; Put new labels into *label-table*
-(define (setNewLabel line)
-    (if (not (null? (cdr line)) )
-        ; If true, then check if there is no nill
-        (if (not (null? (cddr line)))
-            (hash-set! *label-table* (cadr line)(caddr line))
-            (void)) ; If false, do nothing.
-        (void))
-)
-
-
-; Prints out hash table for testing purposes!
-(define (printHash hash)
-    (map (lambda (key) (printf "key:~s value:~s~n" key (hash-ref hash key))) (hash-keys hash))
-)
-
-; Check if the list being passed in has a label.
-(define (lineHasLabel list)
-    (hash-has-key? *label-table* (cadr list))
-)
-
-;
-; (define (if-statement stmt linenum)
-;
-; )
 
 ; When the statment of the line is using 'print', come here and be able to
 ; print out what the statement wanted.
@@ -213,8 +210,15 @@
     (if (null? (cdr line)) ; If there's no second == a line w/o label & stmt
         (void)
         (if (null? (cddr line)) ; If there's no third == a line w/o label
-            (printInStatement(car(cdr line)))
-            (printInStatement(car(cddr line))) ; If false == a line w/ all three
+            (if (eqv? (car(car(cdr line))) 'print)
+                (printInStatement(car(cdr line)))
+                (void)
+            )
+            ; If false == a line w/ all three
+            (if (eqv? (car(car(cddr line))) 'print)
+                (printInStatement(car(cdr line)))
+                (void)
+            )
         )
     )
 )
@@ -236,8 +240,8 @@
         ; Line has label or not, will go through this function.
         ; If line has label, add label into *label-table*,
         ; if not, do nothing!
-        (setNewLabel line)
-        (printHash *label-table*)
+        ;(setNewLabel line)
+        ;(printHash *label-table*)
 
         ; If the line has statement wanting to print, check here and call
         ; the printInStatement function!
