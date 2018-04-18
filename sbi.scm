@@ -77,7 +77,6 @@
 ;; Recurse on cdr until null. "Goto" may take you back to the top of the code though!
 ;; Check if it's a pair by: (pair ? {list})
 
-
 ;; Below are sudo codes from MSI
 ; (define (mytable make-hash))
 ;   (for-each
@@ -128,10 +127,10 @@
         (trunc   ,truncate)
         (log     ,log)
         (log10   ,(lambda (x) (/ (log x) (log 10.0))))
-        (log10_2 0.301029995663981195213738894724493026768189881)
+        (log10_2 , 0.301029995663981195213738894724493026768189881)
         ;(sqrt_2  1.414213562373095048801688724209698078569671875)
-        (e       2.718281828459045235360287471352662497757247093)
-        (pi      3.141592653589793238462643383279502884197169399)
+        (e       , 2.718281828459045235360287471352662497757247093)
+        (pi      , 3.141592653589793238462643383279502884197169399)
         ;(div     ,(lambda (x y) (floor (/ x y))))
         (mod     ,(lambda (x y) (- x (* (div x y) y))))
         (quot    ,(lambda (x y) (truncate (/ x y))))
@@ -145,9 +144,9 @@
     ; Symbol is an atomic value that prints like identifier preceded with <'>.
     (if (symbol? expr)
         ; true, expr is an symbol.
-        ; then if the hash table <variable> already has the current expr.
-        (if (hash-has-key? *variable* expr)
-            (hash-ref *variable* expr) ; true
+        ; then if *variable-table* already has the current expr.
+        (if (hash-has-key? *variable-table* expr)
+            (hash-ref *variable-table* expr) ; true
             (printf "~s does not exist~n" expr)) ; false
         ; false, expr is NOT an symbol.
         (if (number? expr)
@@ -164,56 +163,50 @@
     )
 )
 
-;-------------------------------------------------
-;
+; Put new labels into *label-table*
 (define (setNewLabel line)
-
     (if (not (null? (cdr line)) )
         ; If true, then check if there is no nill
         (if (null? (cddr line))
-             (hash-set! *label-table* (cadr line) (cdr line))
+             (hash-set! *label-table* (cadr line))
         )
-        ; If false, do nothing.
-        (void)
+        (void) ; If false, do nothing.
     )
 )
 
-; put each line with the label in the label table
-; lines with no label in number table
-; function to get each line and put it in the correct table(i.e. num & label table)
-(define (put-hash-line line)
-    ; if no label put in num-table else lable-table
-    ;(printf "~s~n" line)
-    (if(not ( null?(cdr line)))
-        (if (null? (cddr line))
-             (hash-set! *label-table* (cadr line) (cdr line))
-        )
-        (void)
-    )
-)
-
-;-------------------------------------------------
-
-
-; Prints out hash table.
+; Prints out hash table for testing purposes!
 (define (print-hash hash)
     (map (lambda (key) (printf "key:~s value:~s~n" key (hash-ref hash key))) (hash-keys hash))
 )
 
-; Check if the list being passed in has an existed label in our label hash table.
+; Check if the list being passed in has a label.
 (define (lineHasLabel list)
     (hash-has-key? *label-table* (cadr list))
 )
+
 ;
-; ;
 ; (define (if-statement stmt linenum)
 ;
 ; )
-;
-; ;
-; (define (print-stmt stmt)
-;
-; )
+
+; When the statment of the line is using 'print', come here and be able to
+; print out what the statement wanted.
+(define (printInStatement state)
+    (cond
+        ( (null? (cdr state)) (printf "~n") ) ; If print "", print nothing
+        ( (string? (cadr state))
+            ; If cadr of state IS a string
+            (if (null? (cddr state))
+                ; If true, just print our the state
+                (printf "~s" (cadr state))
+                ; If false, need to calculate the statement
+                (printf "~s~s" (cadr state) (evalExpression(cadr state)) )
+            )
+            ; If cadr of state is NOT string
+            (printf "~n"))
+        (else (printf "~s~n" (evalExpression(cadr state))))
+    )
+)
 ;
 ; ;
 ; (define (evalStmt stmt)
@@ -231,23 +224,27 @@
     )
 
     ; line = top list in file ; rest = rest of the lists in file
-    (let ((line (car file)) (rest (cdr file)))
+    (let ( (line (car file)) (rest (cdr file)) )
         ((printf "~s~n" line)
 
-        (if (lineHasLabel line)
-            ; if true, the hash table already has the label. Store statement as label's key, then deal with the statement.
+        ; Line has label or not, will go through this function.
+        ; If line has label, add label into *label-table*,
+        ; if not, do nothing!
+        (setNewLabel(line))
 
-            ; if false, does not have label. Deal with the statement right away
+        ; If the line has statement wanting to print, check here and call
+        ; the printInStatement function!
+        (if ( eqv? (car(caddr line)) 'print ) ; For case there IS label in line
+            (printInStatement(car(cddr line)))
+        )
+        (if ( eqv? (car(cadr line)) 'print ) ; For case there's NO label in line
+            (printInStatement(car(cdr line)))
         )
 
-
-
-        (if (eqv? (car))
-        )
 
         ; Recurse on the rest of the lists in file.
         (stepThrough (+ linenum 1) rest))
-    )
+    ) ; END OF LET
 )
 
 
