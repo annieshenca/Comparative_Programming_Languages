@@ -145,9 +145,9 @@
     (if (symbol? expr)
         ; true, expr is an symbol.
         ; then if *variable-table* already has the current expr.
-        (if (hash-has-key? *variable-table* expr)
-            (hash-ref *variable-table* expr) ; true
-            (printf "~s does not exist~n" expr)) ; false
+        ; (if (hash-has-key? *variable-table* expr)
+        ;     (hash-ref *variable-table* expr) ; true
+        ;     (printf "~s does not exist~n" expr)) ; false
         ; false, expr is NOT an symbol.
         (if (number? expr)
             ; true, expr is a number
@@ -167,15 +167,15 @@
 (define (setNewLabel line)
     (if (not (null? (cdr line)) )
         ; If true, then check if there is no nill
-        (if (null? (cddr line))
-             (hash-set! *label-table* (cadr line))
-        )
-        (void) ; If false, do nothing.
-    )
+        (if (not (null? (cddr line)))
+            (hash-set! *label-table* (cadr line)(caddr line))
+            (void)) ; If false, do nothing.
+        (void))
 )
 
+
 ; Prints out hash table for testing purposes!
-(define (print-hash hash)
+(define (printHash hash)
     (map (lambda (key) (printf "key:~s value:~s~n" key (hash-ref hash key))) (hash-keys hash))
 )
 
@@ -207,40 +207,41 @@
         (else (printf "~s~n" (evalExpression(cadr state))))
     )
 )
+
 ;
-; ;
-; (define (evalStmt stmt)
-;
-; )
+(define (hasPrintInSmt line)
+    (if (null? (cdr line)) ; If there's no second == a line w/o label & stmt
+        (void)
+        (if (null? (cddr line)) ; If there's no third == a line w/o label
+            (printInStatement(car(cdr line)))
+            (printInStatement(car(cddr line))) ; If false == a line w/ all three
+        )
+    )
+)
 
 ; Function Start determines what each line/list of the file do.
 (define (stepThrough linenum file)
     ; Check if current line is Null
     (if (null? file)
-        ; If true, file is finish reading
-        ((printf "Finish reading the file!~n") (exit 1))
-        ; If false, continue.
-        (void)
+        (exit 1) ; If true, file is finish reading
+        (void) ; If false, continue.
     )
 
-    ; line = top list in file ; rest = rest of the lists in file
+    ; line = top list in file.
+    ; rest = rest of the lists in file.
     (let ( (line (car file)) (rest (cdr file)) )
-        ((printf "~s~n" line)
+        (
+        ;(printf "line: ~s~n" line)
 
         ; Line has label or not, will go through this function.
         ; If line has label, add label into *label-table*,
         ; if not, do nothing!
-        (setNewLabel(line))
+        (setNewLabel line)
+        (printHash *label-table*)
 
         ; If the line has statement wanting to print, check here and call
         ; the printInStatement function!
-        (if ( eqv? (car(caddr line)) 'print ) ; For case there IS label in line
-            (printInStatement(car(cddr line)))
-        )
-        (if ( eqv? (car(cadr line)) 'print ) ; For case there's NO label in line
-            (printInStatement(car(cdr line)))
-        )
-
+        (hasPrintInSmt line)
 
         ; Recurse on the rest of the lists in file.
         (stepThrough (+ linenum 1) rest))
