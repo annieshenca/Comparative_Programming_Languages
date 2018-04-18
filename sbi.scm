@@ -164,18 +164,36 @@
     )
 )
 
+;-------------------------------------------------
 ;
 (define (setNewLabel line)
-    ; Check if the cdr of line is Null, if so, set and return void
-    (cond ((null? (cdr line))
-            (void))
-        ; Is the cadr of line a pair? If so, return void
-        ((pair? (cadr line))
-            (void))
-        (else
-        ; If neither the above, add cadr of line into label hash table
-            (hash-set! *label* (cadr line) line)))
+
+    (if (not (null? (cdr line)) )
+        ; If true, then check if there is no nill
+        (if (null? (cddr line))
+             (hash-set! *label-table* (cadr line) (cdr line))
+        )
+        ; If false, do nothing.
+        (void)
+    )
 )
+
+; put each line with the label in the label table
+; lines with no label in number table
+; function to get each line and put it in the correct table(i.e. num & label table)
+(define (put-hash-line line)
+    ; if no label put in num-table else lable-table
+    ;(printf "~s~n" line)
+    (if(not ( null?(cdr line)))
+        (if (null? (cddr line))
+             (hash-set! *label-table* (cadr line) (cdr line))
+        )
+        (void)
+    )
+)
+
+;-------------------------------------------------
+
 
 ; Prints out hash table.
 (define (print-hash hash)
@@ -183,9 +201,9 @@
 )
 
 ; Check if the list being passed in has an existed label in our label hash table.
-; (define (hasLabel list)
-;     (hash-has-key? *label* (cadr list))
-; )
+(define (lineHasLabel list)
+    (hash-has-key? *label-table* (cadr list))
+)
 ;
 ; ;
 ; (define (if-statement stmt linenum)
@@ -212,14 +230,25 @@
         (void)
     )
 
-    (define line (car file)) ; line = top list in file
-    (define rest (cdr file)) ; rest = rest of the lists in file
+    ; line = top list in file ; rest = rest of the lists in file
+    (let ((line (car file)) (rest (cdr file)))
+        ((printf "~s~n" line)
 
-    (printf "~s~n" line)
+        (if (lineHasLabel line)
+            ; if true, the hash table already has the label. Store statement as label's key, then deal with the statement.
 
-    (stepThrough (+ linenum 1) rest) ; Recurse on the rest of the lists in file.
+            ; if false, does not have label. Deal with the statement right away
+        )
+
+
+
+        (if (eqv? (car))
+        )
+
+        ; Recurse on the rest of the lists in file.
+        (stepThrough (+ linenum 1) rest))
+    )
 )
-
 
 
 
