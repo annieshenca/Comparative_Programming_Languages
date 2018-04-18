@@ -72,7 +72,6 @@
 
 ;; To dos:
 ;; - do init scan of the test file looking for labels and store into hash (recur on cdr)
-;;
 
 ;; Recurse on cdr until null. "Goto" may take you back to the top of the code though!
 ;; Check if it's a pair by: (pair ? {list})
@@ -159,8 +158,6 @@
     (hash-has-key? *label-table* (cadr list))
 )
 
-; ---------------------------------------------------------------------
-
 ; Evaluate the expression by using loop that goes through each line
 ; of the file and treats the file as a huge link list.
 (define (evalExpression expr)
@@ -184,10 +181,6 @@
             (apply op (map evalExpression tail)))
 )))
 
-
-; ---------------------------------------------------------------------
-
-
 ; When the statment of the line is using 'print', come here and be able to
 ; print out what the statement wanted.
 (define (printInStatement s)
@@ -199,29 +192,15 @@
                 ; If true, just print our the state
                 (printf "~s" (cadr s))
                 ; If false, need to calculate the mathatic statement
-                (printf "~s~s" (cadr s) (evalExpression(cadr s)))
+                (printf "~s~s" (cadr s) (evalExpression(caddr s)))
             )
             (printf "~n")
         ] ; END OF STRING?
         [else (printf "~s~n" (evalExpression(cadr s)))]
     ) ; END OF COND
 )
-; ---------------------------------------------------------------------
-    ; (define (print-stmt stmt)
-    ;     (cond
-    ;        ((null? (cdr stmt)) (printf "~n"))
-    ;        ((string? (cadr stmt))
-    ;     (if (null? (cddr stmt))
-    ;         (printf "~s" (cadr stmt))
-    ;         (printf "~s~s" (cadr stmt) (eval-expr(caddr stmt)))
-    ;         )
-    ;         (printf "~n"))
-    ;        (else (printf "~s~n" (eval-expr (cadr stmt))))
-    ;     )
-    ; )
-; ---------------------------------------------------------------------
 
-;
+; Check if the line passed in has 'print in it.
 (define (hasPrintInSmt line)
     (if (null? (cdr line)) ; If there's no second == a line w/o label & stmt
         (void)
@@ -256,8 +235,8 @@
         ; Line has label or not, will go through this function.
         ; If line has label, add label into *label-table*,
         ; if not, do nothing!
-        ;(setNewLabel line)
-        ;(printHash *label-table*)
+        (setNewLabel line)
+        (printHash *label-table*)
 
         ; If the line has statement wanting to print, check here and call
         ; the printInStatement function!
@@ -268,6 +247,5 @@
     ) ; END OF LET
 )
 
-
-
+; Running main here
 (main (vector->list (current-command-line-arguments)))
