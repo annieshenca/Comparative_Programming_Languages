@@ -159,6 +159,8 @@
     (hash-has-key? *label-table* (cadr list))
 )
 
+; ---------------------------------------------------------------------
+
 ; Evaluate the expression by using loop that goes through each line
 ; of the file and treats the file as a huge link list.
 (define (evalExpression expr)
@@ -182,34 +184,42 @@
             (apply op (map evalExpression tail)))
 )))
 
+
+; ---------------------------------------------------------------------
+
+
 ; When the statment of the line is using 'print', come here and be able to
 ; print out what the statement wanted.
-(define (printInStatement state)
+(define (printInStatement s)
     ; (cond [(statement) (ONLY GET HERE IF STATEMENT IS TRUE)]) ; Move on if false
-    ; (cond
-    ;     [ (null? (cdr s)) (printf "~n") ]
-    ;     [ (string? (cadr s))
-    ;
-    ;     ]
-    ;
-    ; )
-
     (cond
-        ( (null? (cdr state)) (printf "~n") ) ; If print "", print nothing
-        ( (string? (cadr state))
-            ; If cadr of state IS a string
-            (if (null? (cddr state))
+        [ (null? (cdr s)) (printf "~n") ] ; If print "", print nothing
+        [ (string? (cadr s))
+            (if (null? (cddr s))
                 ; If true, just print our the state
-                (printf "~s" (cadr state))
-                ; If false, need to calculate the statement
-                (printf "~s~s" (cadr state) (evalExpression(cadr state)) )
+                (printf "~s" (cadr s))
+                ; If false, need to calculate the mathatic statement
+                (printf "~s~s" (cadr s) (evalExpression(cadr s)))
             )
-            ; If cadr of state is NOT string
             (printf "~n")
-        )
-        (else (printf "~s~n" (evalExpression(cadr state))))
-    )
+        ] ; END OF STRING?
+        [else (printf "~s~n" (evalExpression(cadr s)))]
+    ) ; END OF COND
 )
+; ---------------------------------------------------------------------
+    ; (define (print-stmt stmt)
+    ;     (cond
+    ;        ((null? (cdr stmt)) (printf "~n"))
+    ;        ((string? (cadr stmt))
+    ;     (if (null? (cddr stmt))
+    ;         (printf "~s" (cadr stmt))
+    ;         (printf "~s~s" (cadr stmt) (eval-expr(caddr stmt)))
+    ;         )
+    ;         (printf "~n"))
+    ;        (else (printf "~s~n" (eval-expr (cadr stmt))))
+    ;     )
+    ; )
+; ---------------------------------------------------------------------
 
 ;
 (define (hasPrintInSmt line)
