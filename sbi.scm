@@ -57,17 +57,20 @@
 (define (main arglist)
     ; Check if the file passed in is null or empty.
     (if (or (null? arglist) (not (null? (cdr arglist))))
+        ; if true:
         (usage-exit)
+        ; if false:
         (let* ((sbprogfile (car arglist))
-               (program (readlist-from-inputfile sbprogfile)))
-              (write-program-by-line sbprogfile program)
-               (interp 1 program))))
+                (program (readlist-from-inputfile sbprogfile)))
+              ;(write-program-by-line sbprogfile program)
+               ; Start interpreting the file from line number 1.
+               (stepThrough 1 program)))
+)
 
 
 ;; Added functionalities below
 
 ;; To dos:
-;; - Set up three hash tables for labels, variables, functions.
 ;; - do init scan of the test file looking for labels and store into hash (recur on cdr)
 ;;
 
@@ -91,26 +94,20 @@
 ; )
 
 ; Set up three hash tables for labels, variables, functions.
-(define *label* (make-hash))
-(define *variable* (make-hash))
-(define *function* (make-hash))
-(define (symbol-get key) (hash-ref *function* key) )
-(define (symbol-put! key value) (hash-set! *function* key value) )
+; *function-table* Holds all functions, including operators.
+(define *function-table* (make-hash))
+; *label-table* Holds address of each line, one level above statements.
+(define *label-table* (make-hash))
+; *variable-table* Holds the value of all variables
+(define *variable-table* (make-hash))
+(define (symbol-get key) (hash-ref *function-table* key) )
+(define (symbol-put! key value) (hash-set! *function-table* key value) )
 
 ; Store needed variables into hash table. Example from symbols.scm
 (for-each
     (lambda (pair)
             (symbol-put! (car pair) (cadr pair)))
     `(
-        (log10_2 0.301029995663981195213738894724493026768189881)
-        (sqrt_2  1.414213562373095048801688724209698078569671875)
-        (e       2.718281828459045235360287471352662497757247093)
-        (pi      3.141592653589793238462643383279502884197169399)
-        (div     ,(lambda (x y) (floor (/ x y))))
-        (log10   ,(lambda (x) (/ (log x) (log 10.0))))
-        (mod     ,(lambda (x y) (- x (* (div x y) y))))
-        (quot    ,(lambda (x y) (truncate (/ x y))))
-        (rem     ,(lambda (x y) (- x (* (quot x y) y))))
         (+       ,+)
         (-       ,-)
         (*       ,*)
@@ -119,13 +116,28 @@
         (ceil    ,ceiling)
         (exp     ,exp)
         (floor   ,floor)
-        (log     ,log)
+        (abs     ,abs)
+        (sin     ,sin)
+        (cos     ,cos)
+        (tan     ,tan)
+        (asin    ,asin)
+        (acos    ,acos)
+        (atan    ,atan)
         (sqrt    ,sqrt)
+        (round   ,round)
         (trunc   ,truncate)
+        (log     ,log)
+        (log10   ,(lambda (x) (/ (log x) (log 10.0))))
+        (log10_2 0.301029995663981195213738894724493026768189881)
+        ;(sqrt_2  1.414213562373095048801688724209698078569671875)
+        (e       2.718281828459045235360287471352662497757247093)
+        (pi      3.141592653589793238462643383279502884197169399)
+        ;(div     ,(lambda (x y) (floor (/ x y))))
+        (mod     ,(lambda (x y) (- x (* (div x y) y))))
+        (quot    ,(lambda (x y) (truncate (/ x y))))
+        (rem     ,(lambda (x y) (- x (* (quot x y) y))))
     )
 )
-
-
 
 ; Evaluate the expression by using loop that goes through each line
 ; of the file and treats the file as a huge link list.
@@ -152,7 +164,7 @@
     )
 )
 
-; 
+;
 (define (setNewLabel line)
     ; Check if the cdr of line is Null, if so, set and return void
     (cond ((null? (cdr line))
@@ -165,17 +177,48 @@
             (hash-set! *label* (cadr line) line)))
 )
 
-; Check if the list being passed in has an existed label in our label hash table.
-(define (hasLabel list)
-    (hash-has-key? *label* (cadr list))
+; Prints out hash table.
+(define (print-hash hash)
+    (map (lambda (key) (printf "key:~s value:~s~n" key (hash-ref hash key))) (hash-keys hash))
 )
 
+; Check if the list being passed in has an existed label in our label hash table.
+; (define (hasLabel list)
+;     (hash-has-key? *label* (cadr list))
+; )
+;
+; ;
+; (define (if-statement stmt linenum)
+;
+; )
+;
+; ;
+; (define (print-stmt stmt)
+;
+; )
+;
+; ;
+; (define (evalStmt stmt)
+;
+; )
 
+; Function Start determines what each line/list of the file do.
+(define (stepThrough linenum file)
+    ; Check if current line is Null
+    (if (null? file)
+        ; If true, file is finish reading
+        ((printf "Finish reading the file!~n") (exit 1))
+        ; If false, continue.
+        (void)
+    )
 
+    (define line (car file)) ; line = top list in file
+    (define rest (cdr file)) ; rest = rest of the lists in file
 
+    (printf "~s~n" line)
 
-
-
+    (stepThrough (+ linenum 1) rest) ; Recurse on the rest of the lists in file.
+)
 
 
 
