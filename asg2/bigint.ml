@@ -49,7 +49,9 @@ module Bigint = struct
     (* Pass in a list and link each number in the whole list together
      * to form a total number *)
     let list_concat list =
-        float_of_string (String.concat "" (List.rev_map string_of_int list))
+        float_of_string (String.concat ""
+            (List.rev_map string_of_int list))
+
 
 (* ///////////////// *)
     (* Pattern Matching format:
@@ -71,9 +73,9 @@ module Bigint = struct
         (* If the +/- symbols are the same, then pass in  *)
         if neg1 = neg2
             then Bigint (neg1, add' value1 value2 0)
-        else if list_concat list1 > list_concat list2
+        else if list_concat value1 > list_concat value2
             then Bigint (neg1, add' value1 value2 0)
-        else Bigint (neg2, add' value2 value2 0)
+        else Bigint (neg2, add' value2 value1 0)
 
 (* ///////////////// *)
 
