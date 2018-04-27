@@ -1,4 +1,4 @@
-(* $Id: maindc.ml,v 1.5 2017-04-07 13:24:41-07 - - $ *)
+(* $Id: maindc.ml,v 1.4 2012-02-16 17:47:43-08 - - $ *)
 
 include Scanner
 include Bigint
@@ -14,14 +14,25 @@ let pop = Stack.pop
 let ord thechar = int_of_char thechar
 type binop_t = bigint -> bigint -> bigint
 
-let print_number number = printf "%s\n%!" (string_of_bigint number)
+let print_number number = printf "%s \n%!" (string_of_bigint number)
 
 let print_stackempty () = printf "stack empty\n%!"
 
+let symbol_table = Array.make 256 (false, Bigint.zero)
+
+let store_var sym_val value = 
+    Array.set symbol_table sym_val (true, value)        
+
+let load_var sym_val thestack =
+    let result = Array.get symbol_table sym_val in match result with
+        | false, _     -> printf "Register '%d' is empty \n%!" sym_val
+        | true, value  -> push value thestack
+
+
 let executereg (thestack: stack_t) (oper: char) (reg: int) =
     try match oper with
-        | 'l' -> printf "operator l reg 0%o is unimplemented\n%!" reg
-        | 's' -> printf "operator s reg 0%o is unimplemented\n%!" reg
+        | 'l' -> load_var reg thestack
+        | 's' -> store_var reg (pop thestack)
         | _   -> printf "0%o 0%o is unimplemented\n%!" (ord oper) reg
     with Stack.Empty -> print_stackempty()
 
@@ -46,7 +57,6 @@ let execute (thestack: stack_t) (oper: char) =
         | 'f'  -> Stack.iter print_number thestack
         | 'l'  -> failwith "operator l scanned with no register"
         | 'p'  -> print_number (Stack.top thestack)
-        | 'q'  -> raise End_of_file
         | 's'  -> failwith "operator s scanned with no register"
         | '\n' -> ()
         | ' '  -> ()
@@ -81,4 +91,3 @@ let interact () =
     in  toploop thestack stdin
 
 let _ = if not !Sys.interactive then readfiles ()
-
