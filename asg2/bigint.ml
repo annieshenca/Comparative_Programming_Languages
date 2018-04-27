@@ -77,7 +77,7 @@ module Bigint = struct
 
 (* ///////////////// *)
 
-
+(* 
     let rec sub' list1 list2 carry = match (list1, list2, carry) with
         | list1, [], 0       -> list1
         | [], list2, 0       -> list2
@@ -89,13 +89,13 @@ module Bigint = struct
 
     let sub (Bigint (neg1, value1)) (Bigint (neg2, value2)) =
         match neg1, neg2 with
-        | Pos, Pos           ->
+        | Pos, Pos    ->
             if
-        | Pos, Neg           ->
+        | Pos, Neg    ->
             Bigint (, add' value1 value2 0)
-        | Neg, Pos           ->
+        | Neg, Pos    ->
             if
-        | Neg, Neg           ->
+        | Neg, Neg    ->
             Bigint (neg1, add' value1 value2 0)
 
 
@@ -162,7 +162,7 @@ module Bigint = struct
     let pow (Bigint (neg1, value1)) (Bigint (neg2, value2)) =
         if neg1 = neg2
         then Bigint (neg1, add' value1 value2 0)
-        else zero
+        else zero *)
 
 (* ///////////////// *)
 
