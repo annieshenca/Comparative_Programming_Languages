@@ -45,7 +45,21 @@ module Bigint = struct
                    in  strcat ""
                        ((if sign = Pos then "" else "-") ::
                         (map string_of_int reversed))
-
+    
+    (* Pass in a list and link each number in the whole list together
+     * to form a total number *)
+    let list_concat list =
+        float_of_string (String.concat ""
+            (List.rev_map string_of_int list))
+
+
+(* ///////////////// *)
+    (* Pattern Matching format:
+     *      match value with
+     *      | pattern   -> result
+     *      | pattern   -> result
+     *         ...
+     *)
     let rec add' list1 list2 carry = match (list1, list2, carry) with
         | list1, [], 0       -> list1
         | [], list2, 0       -> list2
@@ -58,17 +72,109 @@ module Bigint = struct
     let add (Bigint (neg1, value1)) (Bigint (neg2, value2)) =
         if neg1 = neg2
         then Bigint (neg1, add' value1 value2 0)
+       	else if list_concat value1 > list_concat value1
+            then Bigint (neg1, add' value1 value2 0)
+            else Bigint (neg2, add' value2 value1 0)
+
+(* ///////////////// *)
+
+(* 
+    let rec sub' list1 list2 carry = match (list1, list2, carry) with
+        | list1, [], 0       -> list1
+        | [], list2, 0       -> list2
+        | list1, [], carry   -> add' list1 [carry] 0
+        | [], list2, carry   -> add' [carry] list2 0
+        | car1::cdr1, car2::cdr2, carry ->
+          let sum = car1 + car2 + carry
+          in  sum mod radix :: add' cdr1 cdr2 (sum / radix)
+
+    let sub (Bigint (neg1, value1)) (Bigint (neg2, value2)) =
+        match neg1, neg2 with
+        | Pos, Pos    ->
+            if
+        | Pos, Neg    ->
+            Bigint (, add' value1 value2 0)
+        | Neg, Pos    ->
+            if
+        | Neg, Neg    ->
+            Bigint (neg1, add' value1 value2 0)
+
+
+(* ///////////////// *)
+
+    let rec mul' list1 list2 carry = match (list1, list2, carry) with
+        | list1, [], 0       -> list1
+        | [], list2, 0       -> list2
+        | list1, [], carry   -> add' list1 [carry] 0
+        | [], list2, carry   -> add' [carry] list2 0
+        | car1::cdr1, car2::cdr2, carry ->
+          let sum = car1 + car2 + carry
+          in  sum mod radix :: add' cdr1 cdr2 (sum / radix)
+
+    let mul (Bigint (neg1, value1)) (Bigint (neg2, value2)) =
+        if neg1 = neg2
+        then Bigint (neg1, add' value1 value2 0)
         else zero
 
-    let sub = add
+(* ///////////////// *)
 
-    let mul = add
+    let rec div' list1 list2 carry = match (list1, list2, carry) with
+        | list1, [], 0       -> list1
+        | [], list2, 0       -> list2
+        | list1, [], carry   -> add' list1 [carry] 0
+        | [], list2, carry   -> add' [carry] list2 0
+        | car1::cdr1, car2::cdr2, carry ->
+          let sum = car1 + car2 + carry
+          in  sum mod radix :: add' cdr1 cdr2 (sum / radix)
 
-    let div = add
+    let div (Bigint (neg1, value1)) (Bigint (neg2, value2)) =
+        if neg1 = neg2
+        then Bigint (neg1, add' value1 value2 0)
+        else zero
 
-    let rem = add
 
-    let pow = add
+(* ///////////////// *)
+
+    let rec rem' list1 list2 carry = match (list1, list2, carry) with
+        | list1, [], 0       -> list1
+        | [], list2, 0       -> list2
+        | list1, [], carry   -> add' list1 [carry] 0
+        | [], list2, carry   -> add' [carry] list2 0
+        | car1::cdr1, car2::cdr2, carry ->
+          let sum = car1 + car2 + carry
+          in  sum mod radix :: add' cdr1 cdr2 (sum / radix)
+
+    let rem (Bigint (neg1, value1)) (Bigint (neg2, value2)) =
+        if neg1 = neg2
+        then Bigint (neg1, add' value1 value2 0)
+        else zero
+
+(* ///////////////// *)
+
+    let rec pow' list1 list2 carry = match (list1, list2, carry) with
+        | list1, [], 0       -> list1
+        | [], list2, 0       -> list2
+        | list1, [], carry   -> add' list1 [carry] 0
+        | [], list2, carry   -> add' [carry] list2 0
+        | car1::cdr1, car2::cdr2, carry ->
+          let sum = car1 + car2 + carry
+          in  sum mod radix :: add' cdr1 cdr2 (sum / radix)
+
+    let pow (Bigint (neg1, value1)) (Bigint (neg2, value2)) =
+        if neg1 = neg2
+        then Bigint (neg1, add' value1 value2 0)
+        else zero *)
+
+(* ///////////////// *)
 
 end
 
+
+
+
+
+
+
+
+
+(* hi *)
