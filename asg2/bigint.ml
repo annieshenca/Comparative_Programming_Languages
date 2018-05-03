@@ -66,8 +66,8 @@ module Bigint = struct
         | list1, [], carry   -> add' list1 [carry] 0
         | [], list2, carry   -> add' [carry] list2 0
         | car1::cdr1, car2::cdr2, carry ->
-          let sum = car1 + car2 + carry
-          in  sum mod radix :: add' cdr1 cdr2 (sum / radix)
+          let result = car1 + car2 + carry
+          in  result mod radix :: add' cdr1 cdr2 (result / radix)
 
     let add (Bigint (neg1, value1)) (Bigint (neg2, value2)) =
         (* If both numbers are +, then add them together *)
@@ -79,16 +79,18 @@ module Bigint = struct
         then Bigint (neg1, sub' value1 value2 0)
         else Bigint (neg2, sub' value2 value1 0)
 
-(* ///////////////// *)
+(* ////////////////////////////////// *)
 
     let rec sub' list1 list2 carry = match (list1, list2, carry) with
         | list1, [], 0       -> list1
-        | [], list2, 0       -> list2
-        | list1, [], carry   -> add' list1 [carry] 0
-        | [], list2, carry   -> add' [carry] list2 0
+        (* | [], list2, 0       -> [] *) (* <- This shouldn't happen at all *)
+        | list1, [], carry   -> sub' list1 [carry] 0
+        (* | [], list2, carry   -> add' [carry] list2 0 *)
         | car1::cdr1, car2::cdr2, carry ->
-          let diff = car1 - car2 - carry
-          in  diff mod radix :: add' cdr1 cdr2 (sum / radix)
+          let result = car1 - car2 - carry 
+          in if result < 0
+             then car1 + radix - car2 - carry :: sub' cdr1 cdr2 1
+             else car1 - car2 - carry :: sub' cdr1 cdr2 0
 
     let sub (Bigint (neg1, value1)) (Bigint (neg2, value2)) =
         match neg1, neg2 with
@@ -110,7 +112,8 @@ module Bigint = struct
             else Bigint (Neg, sub' value1 value2 0)
 
 
-(* ///////////////// *)
+(* ////////////////////////////////// *)
+
 (*
     let rec mul' list1 list2 carry = match (list1, list2, carry) with
         | list1, [], 0       -> list1
@@ -126,7 +129,7 @@ module Bigint = struct
         then Bigint (neg1, add' value1 value2 0)
         else zero
 
-(* ///////////////// *)
+(* ////////////////////////////////// *)
 
     let rec div' list1 list2 carry = match (list1, list2, carry) with
         | list1, [], 0       -> list1
@@ -143,7 +146,7 @@ module Bigint = struct
         else zero
 
 
-(* ///////////////// *)
+(* ////////////////////////////////// *)
 
     let rec rem' list1 list2 carry = match (list1, list2, carry) with
         | list1, [], 0       -> list1
@@ -159,7 +162,7 @@ module Bigint = struct
         then Bigint (neg1, add' value1 value2 0)
         else zero
 
-(* ///////////////// *)
+(* ////////////////////////////////// *)
 
     let rec pow' list1 list2 carry = match (list1, list2, carry) with
         | list1, [], 0       -> list1
@@ -175,7 +178,7 @@ module Bigint = struct
         then Bigint (neg1, add' value1 value2 0)
         else zero *)
 
-(* ///////////////// *)
+(* ////////////////////////////////// *)
     (* let sub = add *)
     let mul = add
     let div = add
