@@ -70,16 +70,16 @@ module Bigint = struct
           in  sum mod radix :: add' cdr1 cdr2 (sum / radix)
 
     let add (Bigint (neg1, value1)) (Bigint (neg2, value2)) =
+        (* If both numbers are + or -,  *)
         if neg1 = neg2
-        then Bigint (neg1, add' value1 value2 0)
-       	else if list_concat value1 > list_concat value1
             then Bigint (neg1, add' value1 value2 0)
-            else Bigint (neg2, add' value2 value1 0)
+       	else if list_concat value1 > list_concat value2
+            then Bigint (neg1, sub' value1 value2 0)
+            else Bigint (neg2, sub' value2 value1 0)
 
 (* ///////////////// *)
 
-(* 
-    let rec sub' list1 list2 carry = match (list1, list2, carry) with
+ (*    let rec sub' list1 list2 carry = match (list1, list2, carry) with
         | list1, [], 0       -> list1
         | [], list2, 0       -> list2
         | list1, [], carry   -> add' list1 [carry] 0
@@ -97,11 +97,11 @@ module Bigint = struct
         | Neg, Pos    ->
             if
         | Neg, Neg    ->
-            Bigint (neg1, add' value1 value2 0)
+            Bigint (neg1, add' value1 value2 0) *)
 
 
 (* ///////////////// *)
-
+(*
     let rec mul' list1 list2 carry = match (list1, list2, carry) with
         | list1, [], 0       -> list1
         | [], list2, 0       -> list2
@@ -166,6 +166,12 @@ module Bigint = struct
         else zero *)
 
 (* ///////////////// *)
+    let sub = add
+    let mul = add
+    let div = add
+    let rem = add
+    let pow = add
+
 
 end
 
