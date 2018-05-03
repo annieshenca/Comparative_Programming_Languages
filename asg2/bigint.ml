@@ -70,34 +70,44 @@ module Bigint = struct
           in  sum mod radix :: add' cdr1 cdr2 (sum / radix)
 
     let add (Bigint (neg1, value1)) (Bigint (neg2, value2)) =
-        (* If both numbers are + or -,  *)
+        (* If both numbers are +, then add them together *)
+        (* If both numbers are -, it's the same as addition of both numbers and make the result negative.*)
         if neg1 = neg2
-            then Bigint (neg1, add' value1 value2 0)
-       	else if list_concat value1 > list_concat value2
-            then Bigint (neg1, sub' value1 value2 0)
-            else Bigint (neg2, sub' value2 value1 0)
+        then Bigint (neg1, add' value1 value2 0)
+        (* Else if num1 > num2, +(num1 - num2). Else, +(num2 - num1) *)
+        else if list_concat value1 > list_concat value2
+        then Bigint (neg1, sub' value1 value2 0)
+        else Bigint (neg2, sub' value2 value1 0)
 
 (* ///////////////// *)
 
- (*    let rec sub' list1 list2 carry = match (list1, list2, carry) with
+    let rec sub' list1 list2 carry = match (list1, list2, carry) with
         | list1, [], 0       -> list1
         | [], list2, 0       -> list2
         | list1, [], carry   -> add' list1 [carry] 0
         | [], list2, carry   -> add' [carry] list2 0
         | car1::cdr1, car2::cdr2, carry ->
-          let sum = car1 + car2 + carry
-          in  sum mod radix :: add' cdr1 cdr2 (sum / radix)
+          let diff = car1 - car2 - carry
+          in  diff mod radix :: add' cdr1 cdr2 (sum / radix)
 
     let sub (Bigint (neg1, value1)) (Bigint (neg2, value2)) =
         match neg1, neg2 with
-        | Pos, Pos    ->
-            if
-        | Pos, Neg    ->
-            Bigint (, add' value1 value2 0)
-        | Neg, Pos    ->
-            if
-        | Neg, Neg    ->
-            Bigint (neg1, add' value1 value2 0) *)
+        | Pos, Pos  ->
+            (* If greater - less, result would be +(greater - less) *)
+            if list_concat value1 > list_concat value2
+            then Bigint (neg1, sub' value1 value2 0)
+            (* If a less - greater, result would be -(greater - less) *)
+            else Bigint (Neg , sub' value2 value1 0)
+        | Pos, Neg  ->
+            (* a number minus any negative number also means two numbers adding each other *)
+            Bigint (neg1, add' value1 value2 0)
+        | Neg, Pos  ->
+            (* a negative num minus a positive num means -((+num) + (+num)) *)
+            Bigint (neg1, add' value1 value2 0)
+        | Neg, Neg  ->
+            if list_concat value1 > list_concat value2
+            then Bigint (Pos, sub' value2 value1 0)
+            else Bigint (Neg, sub' value1 value2 0)
 
 
 (* ///////////////// *)
@@ -166,7 +176,7 @@ module Bigint = struct
         else zero *)
 
 (* ///////////////// *)
-    let sub = add
+    (* let sub = add *)
     let mul = add
     let div = add
     let rem = add
