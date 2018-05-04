@@ -105,7 +105,7 @@ module Bigint = struct
         if cmp > 0
         then multiplier, [0]
         else let remainder, product = mul' (multiplier, (double powerof2), (double multiplicand')) in
-            let cmp = powerof2 remainder in
+            let cmp = stringcmp powerof2 remainder in
             if cmp > 0
             then remainder, product
             else (trimzeros (sub' remainder powerof2)), (add' product multiplicand' 0)
