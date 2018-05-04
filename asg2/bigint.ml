@@ -101,8 +101,8 @@ module Bigint = struct
 
     let rec sub' list1 list2 carry = match (list1, list2, carry) with
         | list1, [], 0       -> list1
-        | list1, [], carry   -> sub' list1 [carry] 0
         (*| _, _, _            -> failwith "sub'"*)
+        | list1, [], carry   -> sub' list1 [carry] 0
         | car1::cdr1, car2::cdr2, carry ->
             let result = car1 - car2 - carry 
             in if result < 0
@@ -111,13 +111,14 @@ module Bigint = struct
         | _, _, _            -> failwith "sub'"
     
     (* Pass in a num and return the power of two of that num. *)
-    let double num = (add' num num 0)
+    (* let double num = (add' num num 0) *)
 
     let rec mul' (multiplier, powerof2, multiplicand') =
         let cmp = stringcmp powerof2 multiplier in
         if cmp > 0
         then multiplier, [0]
-        else let remainder, product = mul' (multiplier, (double powerof2), (double multiplicand')) in
+        else let remainder, product = 
+                mul' (multiplier, (add' powerof2 powerof2 0), (add' multiplicand' multiplicand' 0)) in
             let cmp = stringcmp powerof2 remainder in
             if cmp > 0
             then remainder, product
