@@ -190,17 +190,18 @@ module Bigint = struct
     let divrem (dividend, divisor') = divrem' (dividend, [1], divisor')
 
     
-    let div (Bigint(neg1, dividend)) (Bigint(neg2, divisor)) =
+(*     let div (Bigint(neg1, dividend)) (Bigint(neg2, divisor)) =
         let quotient, _ = divrem ((Bigint(neg1, dividend)), (Bigint(neg2, divisor)))
         in quotient
 
     let rem (Bigint(neg1, dividend)) (Bigint(neg2, divisor)) =
         let _, remainder = divrem ((Bigint(neg1, dividend)), (Bigint(neg2, divisor)))
-        in remainder
+        in remainder *)
 
 
 (* ******************************************************************************** *)
-
+    let div = add
+    let rem = add
     let pow = add
 
 
