@@ -46,11 +46,6 @@ module Bigint = struct
                        ((if sign = Pos then "" else "-") ::
                         (map string_of_int reversed))
     
-    (* Pass in a list and link each number in the whole list together
-     * to form a total number *)
-    let list_concat list =
-        float_of_string (String.concat ""
-            (List.rev_map string_of_int list))
 
     (* Same functionalities as C's strcmp.
      * Move from low to high order digits tail recursively and stop at the end of the shorter list.
@@ -58,15 +53,21 @@ module Bigint = struct
      * Return  1 == a value in list1 has greater ASC value than a value in list2.
      * Return -1 == the other way around.*)
     let strcmp list1 list2 = match (list1, list2) with 
-        | [], []         ->  0 
         | list1, []      ->  1
         | [], list2      -> -1
+        | [], []         ->  0 
         | list1, list2   ->
             if (List.length list1) > (List.length list2)
             then 1
             else if (List.length list1) < (List.length list2)
             then -1
-
+            else let r1 = reverse list1 in
+                 let r2 = reverse list2 in
+                    if (car r1) > (car r2)
+                    then 1
+                    else if (car r2) > (car r1)
+                    then -1
+                    else strcmp (reserve (cdr r1)) (reverse (cdr r2))
 
 
 (* ///////////////// *)
@@ -107,18 +108,23 @@ module Bigint = struct
         if neg1 = neg2
         then Bigint (neg1, add' value1 value2 0)
         (* Else if num1 > num2, +(num1 - num2). Else, +(num2 - num1) *)
-        else if list_concat value1 > list_concat value2
-        then Bigint (neg1, sub' value1 value2 0)
-        else Bigint (neg2, sub' value2 value1 0)
+        else let cmp = strcmp list1 list2 in 
+            if cmp > 0
+            then Bigint (neg1, sub' value1 value2 0)
+            else if cmp < 0
+            then Bigint (neg2, sub' value2 value1 0)
+            else zero
 
     let sub (Bigint (neg1, value1)) (Bigint (neg2, value2)) =
         match neg1, neg2 with
         | Pos, Pos  ->
             (* If greater - less, result would be +(greater - less) *)
-            if list_concat value1 > list_concat value2
-            then Bigint (neg1, sub' value1 value2 0)
+            let cmp = strcmp list1 list2 in 
+                if cmp > 0
+                then Bigint (neg1, sub' value1 value2 0)
             (* If a less - greater, result would be -(greater - less) *)
-            else Bigint (Neg , sub' value2 value1 0)
+                else if Bigint (Neg , sub' value2 value1 0)
+                else zero
         | Pos, Neg  ->
             (* a number minus any negative number also means two numbers adding each other *)
             Bigint (neg1, add' value1 value2 0)
@@ -127,9 +133,11 @@ module Bigint = struct
             Bigint (neg1, add' value1 value2 0)
         | Neg, Neg  ->
             (* Make sure the larger number is in the front. *)
-            if list_concat value1 > list_concat value2
-            then Bigint (Pos, sub' value2 value1 0)
-            else Bigint (Neg, sub' value1 value2 0)
+            let cmp = strcmp list1 list2 in 
+                if cmp > 0
+                then Bigint (Pos, sub' value2 value1 0)
+                else if Bigint (Neg, sub' value1 value2 0)
+                else zero
 
 
 (*
