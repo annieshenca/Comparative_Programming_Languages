@@ -52,7 +52,7 @@ module Bigint = struct
      * Return  0 == two lists are the same.
      * Return  1 == a value in list1 has greater ASC value than a value in list2.
      * Return -1 == the other way around.*)
-    let strcmp list1 list2 = match (list1, list2) with 
+    let rec stringcmp list1 list2 = match (list1, list2) with 
         | list1, []      ->  1
         | [], list2      -> -1
         | [], []         ->  0 
@@ -67,7 +67,7 @@ module Bigint = struct
                     then 1
                     else if (car r2) > (car r1)
                     then -1
-                    else strcmp (reserve (cdr r1)) (reverse (cdr r2))
+                    else stringcmp (reserve (cdr r1)) (reverse (cdr r2))
 
 
 (* ///////////////// *)
@@ -108,7 +108,7 @@ module Bigint = struct
         if neg1 = neg2
         then Bigint (neg1, add' value1 value2 0)
         (* Else if num1 > num2, +(num1 - num2). Else, +(num2 - num1) *)
-        else let cmp = strcmp list1 list2 in 
+        else let cmp = stringcmp list1 list2 in 
             if cmp > 0
             then Bigint (neg1, sub' value1 value2 0)
             else if cmp < 0
@@ -119,7 +119,7 @@ module Bigint = struct
         match neg1, neg2 with
         | Pos, Pos  ->
             (* If greater - less, result would be +(greater - less) *)
-            let cmp = strcmp list1 list2 in 
+            let cmp = stringcmp list1 list2 in 
                 if cmp > 0
                 then Bigint (neg1, sub' value1 value2 0)
             (* If a less - greater, result would be -(greater - less) *)
@@ -134,7 +134,7 @@ module Bigint = struct
             Bigint (neg1, add' value1 value2 0)
         | Neg, Neg  ->
             (* Make sure the larger number is in the front. *)
-            let cmp = strcmp list1 list2 in 
+            let cmp = stringcmp list1 list2 in 
                 if cmp > 0
                 then Bigint (Pos, sub' value2 value1 0)
                 else if cmp < 0
