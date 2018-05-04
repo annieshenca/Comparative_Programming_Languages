@@ -71,14 +71,17 @@ module Bigint = struct
 
     let rec sub' list1 list2 carry = match (list1, list2, carry) with
         | list1, [], 0       -> list1
-        | [], list2, 0       -> [] (* <- This shouldn't happen at all *)
         | list1, [], carry   -> sub' list1 [carry] 0
-        | [], list2, carry   -> []
         | car1::cdr1, car2::cdr2, carry ->
           let result = car1 - car2 - carry 
           in if result < 0
-             then car1 + radix - car2 - carry :: sub' cdr1 cdr2 1
-             else car1 - car2 - carry :: sub' cdr1 cdr2 0
+             then result + 10 :: sub' cdr1 cdr2 1
+             else result :: sub' cdr1 cdr2 0
+             (* then car1 + radix - car2 - carry :: sub' cdr1 cdr2 1
+             else car1 - car2 - carry :: sub' cdr1 cdr2 0 *)
+
+(* ******************************************************************************** *)
+(* ******************************************************************************** *)
 
     let add (Bigint (neg1, value1)) (Bigint (neg2, value2)) =
         (* If both numbers are +, then add them together *)
@@ -105,12 +108,11 @@ module Bigint = struct
             (* a negative num minus a positive num means -((+num) + (+num)) *)
             Bigint (neg1, add' value1 value2 0)
         | Neg, Neg  ->
+            (* Make sure the larger number is in the front. *)
             if list_concat value1 > list_concat value2
             then Bigint (Pos, sub' value2 value1 0)
             else Bigint (Neg, sub' value1 value2 0)
 
-
-(* ////////////////////////////////// *)
 
 (*
     let rec mul' list1 list2 carry = match (list1, list2, carry) with
@@ -176,7 +178,8 @@ module Bigint = struct
         then Bigint (neg1, add' value1 value2 0)
         else zero *)
 
-(* ////////////////////////////////// *)
+
+(* ******************************************************************************** *)
     (* let sub = add *)
     let mul = add
     let div = add
@@ -185,13 +188,3 @@ module Bigint = struct
 
 
 end
-
-
-
-
-
-
-
-
-
-(* hi *)
