@@ -67,7 +67,7 @@ module Bigint = struct
                     then 1
                     else if (car r2) > (car r1)
                     then -1
-                    else stringcmp (reserve (cdr r1)) (reverse (cdr r2))
+                    else stringcmp (reverse (cdr r1)) (reverse (cdr r2))
 
 
 (* ///////////////// *)
