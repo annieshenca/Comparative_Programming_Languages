@@ -72,6 +72,7 @@ module Bigint = struct
     let rec sub' list1 list2 carry = match (list1, list2, carry) with
         | list1, [], 0       -> list1
         | list1, [], carry   -> sub' list1 [carry] 0
+        | _, _, _            -> failwith "sub'"
         | car1::cdr1, car2::cdr2, carry ->
           let result = car1 - car2 - carry 
           in if result < 0
@@ -79,7 +80,7 @@ module Bigint = struct
              else result :: sub' cdr1 cdr2 0
              (* then car1 + radix - car2 - carry :: sub' cdr1 cdr2 1
              else car1 - car2 - carry :: sub' cdr1 cdr2 0 *)
-        | _, _, _          -> failwith "sub'"
+
 
 (* ******************************************************************************** *)
 (* ******************************************************************************** *)
