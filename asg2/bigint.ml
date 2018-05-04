@@ -123,7 +123,8 @@ module Bigint = struct
                 if cmp > 0
                 then Bigint (neg1, sub' value1 value2 0)
             (* If a less - greater, result would be -(greater - less) *)
-                else if Bigint (Neg , sub' value2 value1 0)
+                else if cmp < 0
+                then Bigint (Neg , sub' value2 value1 0)
                 else zero
         | Pos, Neg  ->
             (* a number minus any negative number also means two numbers adding each other *)
