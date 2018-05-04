@@ -15,6 +15,11 @@ let pop = Stack.pop
 let ord thechar = int_of_char thechar
 type binop_t = bigint -> bigint -> bigint
 
+let registers = Hashtbl.create 256
+let hlook = Hashtbl.mem
+let hget = Hashtbl.find
+let hset = Hashtbl.replace
+
 let rec printt number =
     if (String.length number) < 70
     then printf "%s\n%!" number
@@ -28,8 +33,8 @@ let print_stackempty () = printf "dc: stack empty\n%!"
 
 let executereg (thestack: stack_t) (oper: char) (reg: int) =
     try match oper with
-        | 'l' -> printf "operator l reg 0%o is unimplemented\n%!" reg
-        | 's' -> printf "operator s reg 0%o is unimplemented\n%!" reg
+        | 'l' -> if (hlook registers reg) then push (hget registers reg) thestack
+        | 's' -> hset registers reg (pop thestack)
         | _   -> printf "0%o 0%o is unimplemented\n%!" (ord oper) reg
     with Stack.Empty -> print_stackempty()
 
@@ -60,7 +65,7 @@ let execute (thestack: stack_t) (oper: char) =
         | ' '  -> ()
         | _    -> printf "0%o is unimplemented\n%!" (ord oper)
     with Stack.Empty -> print_stackempty()
-
+
 let toploop (thestack: stack_t) inputchannel =
     let scanbuf = Lexing.from_channel inputchannel in
     let rec toploop () = 
