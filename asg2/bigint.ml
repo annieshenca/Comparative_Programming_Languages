@@ -108,7 +108,7 @@ module Bigint = struct
         if neg1 = neg2
         then Bigint (neg1, add' value1 value2 0)
         (* Else if num1 > num2, +(num1 - num2). Else, +(num2 - num1) *)
-        else let cmp = stringcmp list1 list2 in 
+        else let cmp = stringcmp value1 value2 in 
             if cmp > 0
             then Bigint (neg1, sub' value1 value2 0)
             else if cmp < 0
@@ -119,7 +119,7 @@ module Bigint = struct
         match neg1, neg2 with
         | Pos, Pos  ->
             (* If greater - less, result would be +(greater - less) *)
-            let cmp = stringcmp list1 list2 in 
+            let cmp = stringcmp value1 value2 in 
                 if cmp > 0
                 then Bigint (neg1, sub' value1 value2 0)
             (* If a less - greater, result would be -(greater - less) *)
@@ -134,7 +134,7 @@ module Bigint = struct
             Bigint (neg1, add' value1 value2 0)
         | Neg, Neg  ->
             (* Make sure the larger number is in the front. *)
-            let cmp = stringcmp list1 list2 in 
+            let cmp = stringcmp value1 value2 in 
                 if cmp > 0
                 then Bigint (Pos, sub' value2 value1 0)
                 else if cmp < 0
