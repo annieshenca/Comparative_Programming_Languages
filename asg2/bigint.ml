@@ -123,6 +123,17 @@ module Bigint = struct
             then remainder, product
             else (trimzeros (sub' remainder powerof2 0)), (add' product multiplicand' 0)
 
+    let rec divrem' (dividend, powerof2, divisor') =
+        let cmp = stringcmp dividend divisor' in
+        if cmp < 0 (* That divisor' is greater than dividend*)
+        then [0], dividend
+        else let quotient, remainder =
+                 divrem' (dividend, (double powerof2), (double divisor')) in
+             let cmpp = stringcmp remainder divisor' in
+                if cmpp < 0
+                then quotient, remainder
+                else (add' quotient powerof2 0), (sub' remainder divisor' 0)
+
 (* ******************************************************************************** *)
 (* ******************************************************************************** *)
 
@@ -175,30 +186,21 @@ module Bigint = struct
         else let _, product = mul' (value1, [1], value2) in Bigint (Neg, product)
         (* let mul = add *)
 
-(*     let rec divrem' (dividend, powerof2, divisor') =
-        if divisor' > dividend
-        then 0, dividend
-        else let quotient, remainder =
-                 divrem' (dividend, double powerof2, double divisor')
-             in  if remainder < divisor'
-                 then quotient, remainder
-                 else quotient + powerof2, remainder - divisor'
 
-    let divrem (dividend, divisor') = divrem' (dividend, 1, divisor')
+    let divrem (dividend, divisor') = divrem' (dividend, [1], divisor')
 
+    
     let div (dividend, divisor) =
         let quotient, _ = divrem (dividend, divisor)
         in quotient
 
     let rem (dividend, divisor) =
         let _, remainder = divrem (dividend, divisor)
-        in remainder *)
+        in remainder
 
 
 (* ******************************************************************************** *)
-    
-    let div = add
-    let rem = add
+
     let pow = add
 
 
