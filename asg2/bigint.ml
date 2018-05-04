@@ -121,7 +121,7 @@ module Bigint = struct
                 mul' (multiplier, (double powerof2), (double multiplicand'))
             in if (stringcmp powerof2 remainder) > 0
             then remainder, product
-            else (trimzeros (sub' remainder powerof2)), (add' product multiplicand' 0)
+            else (trimzeros (sub' remainder powerof2 0)), (add' product multiplicand' 0)
 
 (* ******************************************************************************** *)
 (* ******************************************************************************** *)
