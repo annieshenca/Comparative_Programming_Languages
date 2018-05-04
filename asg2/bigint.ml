@@ -191,11 +191,11 @@ module Bigint = struct
 
     
     let div (Bigint(neg1, dividend)) (Bigint(neg2, divisor)) =
-        let quotient, _ = divrem (dividend, divisor)
+        let quotient, _ = divrem ((Bigint(neg1, dividend)), (Bigint(neg2, divisor)))
         in quotient
 
     let rem (Bigint(neg1, dividend)) (Bigint(neg2, divisor)) =
-        let _, remainder = divrem (dividend, divisor)
+        let _, remainder = divrem ((Bigint(neg1, dividend)), (Bigint(neg2, divisor)))
         in remainder
 
 
