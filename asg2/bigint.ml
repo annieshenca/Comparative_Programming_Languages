@@ -98,14 +98,13 @@ module Bigint = struct
         | _, _, _            -> failwith "sub'"
     
     (* Pass in a num and return the power of two of that num. *)
-    let double num = Bigint (Pos, add' num num 0)
+    let double num = (add' num num 0)
 
     let rec mul' (multiplier, powerof2, multiplicand') =
         let cmp = stringcmp powerof2 multiplier in
         if cmp > 0
         then multiplier, [0]
-        else let remainder, product =
-                mul' (multiplier, (double powerof2), (double multiplicand')) in
+        else let remainder, product = mul' (multiplier, (double powerof2), (double multiplicand')) in
             let cmp = powerof2 remainder in
             if cmp > 0
             then remainder, product
