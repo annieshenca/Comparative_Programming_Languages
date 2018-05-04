@@ -79,7 +79,7 @@ module Bigint = struct
              else result :: sub' cdr1 cdr2 0
              (* then car1 + radix - car2 - carry :: sub' cdr1 cdr2 1
              else car1 - car2 - carry :: sub' cdr1 cdr2 0 *)
-        | [], [], 0          -> failwith "sub'"
+        | _, _, _          -> failwith "sub'"
 
 (* ******************************************************************************** *)
 (* ******************************************************************************** *)
