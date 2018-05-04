@@ -137,7 +137,8 @@ module Bigint = struct
             let cmp = strcmp list1 list2 in 
                 if cmp > 0
                 then Bigint (Pos, sub' value2 value1 0)
-                else if Bigint (Neg, sub' value1 value2 0)
+                else if cmp < 0
+                then Bigint (Neg, sub' value1 value2 0)
                 else zero
 
 
