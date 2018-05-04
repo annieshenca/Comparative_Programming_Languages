@@ -69,9 +69,6 @@ module Bigint = struct
                     then -1
                     else stringcmp (reverse (cdr r1)) (reverse (cdr r2))
 
-    (* Pass in a num and return the power of two of that num. *)
-    let double num = Bigint (Pos, add' num num 0)
-
 
 (* ///////////////// *)
     (* Pattern Matching format:
@@ -100,6 +97,9 @@ module Bigint = struct
                else result :: sub' cdr1 cdr2 0
         | _, _, _            -> failwith "sub'"
     
+    (* Pass in a num and return the power of two of that num. *)
+    let double num = Bigint (Pos, add' num num 0)
+
     let rec mul' (multiplier, powerof2, multiplicand') =
         let cmp = stringcmp powerof2 multiplier in
         if cmp > 0
