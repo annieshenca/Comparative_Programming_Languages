@@ -52,6 +52,22 @@ module Bigint = struct
         float_of_string (String.concat ""
             (List.rev_map string_of_int list))
 
+    (* Same functionalities as C's strcmp.
+     * Move from low to high order digits tail recursively and stop at the end of the shorter list.
+     * Return  0 == two lists are the same.
+     * Return  1 == a value in list1 has greater ASC value than a value in list2.
+     * Return -1 == the other way around.*)
+    let strcmp list1 list2 = match (list1, list2) with 
+        | [], []         ->  0 
+        | list1, []      ->  1
+        | [], list2      -> -1
+        | list1, list2   ->
+            if (List.length list1) > (List.length list2)
+            then 1
+            else if (List.length list1) < (List.length list2)
+            then -1
+
+
 
 (* ///////////////// *)
     (* Pattern Matching format:
@@ -66,18 +82,18 @@ module Bigint = struct
         | list1, [], carry   -> add' list1 [carry] 0
         | [], list2, carry   -> add' [carry] list2 0
         | car1::cdr1, car2::cdr2, carry ->
-          let result = car1 + car2 + carry
-          in  result mod radix :: add' cdr1 cdr2 (result / radix)
+            let result = car1 + car2 + carry
+            in  result mod radix :: add' cdr1 cdr2 (result / radix)
 
     let rec sub' list1 list2 carry = match (list1, list2, carry) with
         | list1, [], 0       -> list1
         | list1, [], carry   -> sub' list1 [carry] 0
         | _, _, _            -> failwith "sub'"
         | car1::cdr1, car2::cdr2, carry ->
-          let result = car1 - car2 - carry 
-          in if result < 0
-             then result + 10 :: sub' cdr1 cdr2 1
-             else result :: sub' cdr1 cdr2 0
+            let result = car1 - car2 - carry 
+            in if result < 0
+               then result + 10 :: sub' cdr1 cdr2 1
+               else result :: sub' cdr1 cdr2 0
              (* then car1 + radix - car2 - carry :: sub' cdr1 cdr2 1
              else car1 - car2 - carry :: sub' cdr1 cdr2 0 *)
 
