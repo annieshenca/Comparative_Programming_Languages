@@ -111,16 +111,15 @@ module Bigint = struct
         | _, _, _            -> failwith "sub'"
     
     (* Pass in a num and return the power of two of that num. *)
-    (* let double num = (add' num num 0) *)
+    let double num = (add' num num 0)
 
-    let rec mul' (multiplier, powerof2, multiplicand') =
+     let rec mul' (multiplier, powerof2, multiplicand') =
         let cmp = stringcmp powerof2 multiplier in
         if cmp > 0
         then multiplier, [0]
         else let remainder, product = 
-                mul' (multiplier, (add' powerof2 powerof2 0), (add' multiplicand' multiplicand' 0)) in
-            let cmp = stringcmp powerof2 remainder in
-            if cmp > 0
+                mul' (multiplier, (double powerof2), (double multiplicand'))
+            in if (stringcmp powerof2 remainder) > 0
             then remainder, product
             else (trimzeros (sub' remainder powerof2)), (add' product multiplicand' 0)
 
@@ -168,13 +167,13 @@ module Bigint = struct
                 else zero
 
 
-    let mul (Bigint (neg1, value1)) (Bigint (neg2, value2)) =
+(*     let mul (Bigint (neg1, value1)) (Bigint (neg2, value2)) =
         (* If both values are ++ or --, the product in both cases will be +. *)
         if neg1 = neg2
         then let _, product = mul' (value1, [1], value2) in Bigint (Pos, product)
         (* The product will be negetive since one of the value is -. *)
-        else let _, product = mul' (value1, [1], value2) in Bigint (Neg, product)
-
+        else let _, product = mul' (value1, [1], value2) in Bigint (Neg, product) *)
+        let mul = add
 
 (*     let rec divrem' (dividend, powerof2, divisor') =
         if divisor' > dividend
