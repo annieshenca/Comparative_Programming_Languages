@@ -71,9 +71,9 @@ module Bigint = struct
 
     let rec sub' list1 list2 carry = match (list1, list2, carry) with
         | list1, [], 0       -> list1
-        (* | [], list2, 0       -> [] *) (* <- This shouldn't happen at all *)
+        | [], list2, 0       -> [] (* <- This shouldn't happen at all *)
         | list1, [], carry   -> sub' list1 [carry] 0
-        (* | [], list2, carry   -> add' [carry] list2 0 *)
+        | [], list2, carry   -> []
         | car1::cdr1, car2::cdr2, carry ->
           let result = car1 - car2 - carry 
           in if result < 0
