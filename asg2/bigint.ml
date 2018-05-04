@@ -167,13 +167,13 @@ module Bigint = struct
                 else zero
 
 
-(*     let mul (Bigint (neg1, value1)) (Bigint (neg2, value2)) =
+    let mul (Bigint (neg1, value1)) (Bigint (neg2, value2)) =
         (* If both values are ++ or --, the product in both cases will be +. *)
         if neg1 = neg2
         then let _, product = mul' (value1, [1], value2) in Bigint (Pos, product)
         (* The product will be negetive since one of the value is -. *)
-        else let _, product = mul' (value1, [1], value2) in Bigint (Neg, product) *)
-        let mul = add
+        else let _, product = mul' (value1, [1], value2) in Bigint (Neg, product)
+        (* let mul = add *)
 
 (*     let rec divrem' (dividend, powerof2, divisor') =
         if divisor' > dividend
