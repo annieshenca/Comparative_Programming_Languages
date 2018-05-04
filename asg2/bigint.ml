@@ -46,6 +46,19 @@ module Bigint = struct
                        ((if sign = Pos then "" else "-") ::
                         (map string_of_int reversed))
     
+    (* Trim off seros from end of a list. If the list is a number represented in
+     * reverse order, this trims high-order digits, as would be needed after
+     * a subtraction. *)
+    let trimzeros list =
+        let rec trimzeros' list' = match list' with
+            | []       -> []
+            | [0]      -> []
+            | car::cdr ->
+                 let cdr' = trimzeros' cdr
+                 in  match car, cdr' with
+                     | 0, [] -> []
+                     | car, cdr' -> car::cdr'
+        in trimzeros' list
 
     (* Same functionalities as C's strcmp.
      * Move from low to high order digits tail recursively and stop at the end of the shorter list.
