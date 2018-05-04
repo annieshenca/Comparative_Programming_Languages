@@ -69,6 +69,9 @@ module Bigint = struct
                     then -1
                     else stringcmp (reverse (cdr r1)) (reverse (cdr r2))
 
+    (* Pass in a num and return the power of two of that num. *)
+    let double num = Bigint (Pos, add' num num 0)
+
 
 (* ///////////////// *)
     (* Pattern Matching format:
@@ -96,7 +99,17 @@ module Bigint = struct
                then result + 10 :: sub' cdr1 cdr2 1
                else result :: sub' cdr1 cdr2 0
         | _, _, _            -> failwith "sub'"
-
+    
+    let rec mul' (multiplier, powerof2, multiplicand') =
+        let cmp = stringcmp powerof2 multiplier in
+        if cmp > 0
+        then multiplier, [0]
+        else let remainder, product =
+                mul' (multiplier, double powerof2, double multiplicand') in
+            let cmp = powerof2 remainder in
+            if cmp > 0
+            then remainder, product
+            else (trimzeros (sub' remainder powerof2)), (add' product multiplicand' 0)
 
 (* ******************************************************************************** *)
 (* ******************************************************************************** *)
@@ -113,6 +126,7 @@ module Bigint = struct
             else if cmp < 0
             then Bigint (neg2, sub' value2 value1 0)
             else zero
+
 
     let sub (Bigint (neg1, value1)) (Bigint (neg2, value2)) =
         match neg1, neg2 with
@@ -141,14 +155,36 @@ module Bigint = struct
                 else zero
 
 
+    let mul (Bigint (neg1, value1)) (Bigint (neg2, value2)) =
+        (* If both values are ++ or --, the product in both cases will be +. *)
+        if neg1 = neg2
+        then let _, product = mul' (value1, [1], value2) in Bigint (Pos, product)
+        (* The product will be negetive since one of the value is -. *)
+        else let _, product = mul' (value1, [1], value2) in Bigint (Neg, product)
 
 
+(*     let rec divrem' (dividend, powerof2, divisor') =
+        if divisor' > dividend
+        then 0, dividend
+        else let quotient, remainder =
+                 divrem' (dividend, double powerof2, double divisor')
+             in  if remainder < divisor'
+                 then quotient, remainder
+                 else quotient + powerof2, remainder - divisor'
+
+    let divrem (dividend, divisor') = divrem' (dividend, 1, divisor')
+
+    let div (dividend, divisor) =
+        let quotient, _ = divrem (dividend, divisor)
+        in quotient
+
+    let rem (dividend, divisor) =
+        let _, remainder = divrem (dividend, divisor)
+        in remainder *)
 
 
 (* ******************************************************************************** *)
-    let mul = add
     let div = add
-    let rem = add
     let pow = add
 
 
