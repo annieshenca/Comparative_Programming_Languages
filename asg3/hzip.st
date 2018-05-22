@@ -6,13 +6,60 @@
 "CMPS112 - Homework 3 - smalltalk hzip.st"
 ""
 
+
 execname := '$RCSfile: hzip.st,v $' =~ '.*: (.*),v.*' at: 1.
 nl := Character nl.
 
+"Create Stack Object"
+Object subclass: Stack [
+    |theArray top item|
 
-"Example code from class course page - charfreq.st"
-"Create ZeroArray Object"
-"Will be used for frequency table & count frequency of input characters"
+    Stack class >> new [
+        self shouldNotImplement.
+    ]
+
+    Stack class >> new: size [
+        |result|
+        result := super new.
+        result init: size.
+        ^ result
+    ]
+
+    init: size [
+        top := 0.
+        theArray := Array new: size.
+    ]
+
+    size [
+        ^ top.
+    ]
+
+    "Take out and remove the item that's on the top of the stack.
+     No need to specify which item."
+    pop [
+        top = 0 ifTrue: [
+            stderr << execname << ': ERROR: pop - overflowing stack.' << nl.
+            ^ nil
+        ].
+        item := theArray at: top.
+        top := top - 1.
+        ^ item
+    ]
+
+    "Insert a  specified item into stack"
+    push: item [
+        top := top + 1.
+        top > self size ifTrue: [
+            ^ stderr << execname << ': ERROR: push - overflowing stack.' << nl.
+        ].
+        theArray at: top put: item.
+    ]
+]
+
+
+"Example code from class course page - charfreq.st
+ Create ZeroArray Object
+ Will be used for frequency table & count frequency of input characters"
 Object subclass: ZeroArry [
     "The main returning array of subclass"
     |theArray|
@@ -54,7 +101,6 @@ Object subclass: ZeroArry [
         self at: index put: (self at: index) + 1.
     ]
 
-
     keysAndValuesDo: aBlock [
        (0 to: (self size) - 1) do: [:index |
           aBlock value: index value: (self at: index).
@@ -63,9 +109,8 @@ Object subclass: ZeroArry [
 ]
 
 
-"Example code from class course page - tree.st"
-"Create Leaf Object"
-""
+"Example code from class course page - tree.st
+ Create Leaf Object"
 Object subclass: Leaf [
     |char count|
     char [ ^ char ]
@@ -111,8 +156,8 @@ Object subclass: Leaf [
     ]
 ]
 
-"Example code from class course page - tree.st"
-"Create Tree Object"
+"Example code from class course page - tree.st
+ Create Tree Object"
 Leaf subclass: Tree [
    |left right|
    left [ ^ left ]
@@ -162,7 +207,7 @@ out_name := (Smalltalk getArgv: 3).
 "If argument < 2, return error msg and exit the running program"
 Smalltalk arguments < 2
 ifTrue: [
-    stderr << execname << 'ERROR: lacking command line arguments.' << nl.
+    stderr << execname << ': ERROR: lacking command line arguments.' << nl.
     ObjectMemory quit.
 ]
 
@@ -180,7 +225,7 @@ freqtable := ZeroArray new: 256.
     "In terms of error in reading input_file, flush the program and exit"
     ] on: SystemExceptions.FileError do: [:signal |
         stdout flush.
-        stderr << execname << 'ERROR: input file file error.' << nl.
+        stderr << execname << ': ERROR: input file file error.' << nl.
         stderr flush.
     ].
 
