@@ -10,6 +10,210 @@
 execname := '$RCSfile: hzip.st,v $' =~ '.*: (.*),v.*' at: 1.
 nl := Character nl.
 
+
+"**************************************************************************"
+"------------------------------- File stuff -------------------------------"
+
+"File load and read."
+FileStream extend [
+    |bitnum bitbuf|
+
+    clearByte [
+        bitnum := 8.
+        bitbuf := 0.
+    ]
+
+    flushByte [
+        |char|
+        bitnum = 8 ifFalse: [
+            char := Character value: bitbuf asInteger.
+            self nextPut: char.
+            self clearByte.
+        ]
+    ]
+
+    writeBit: bit [
+        bitbuf isNil ifTrue: [self clearByte].
+        bitnum = 0 ifTrue: [self flushByte].
+        bitbuf := bitbuf bitAt: bitnum put: bit.
+        bitnum := bitnum - 1.
+    ]
+
+    "Reset the value of bitnum to 0"
+    clearBits [
+        bitnum := 0.
+    ]
+
+
+    fillByte [
+        bitbuf := self next.
+        bitnum := 0.
+    ]
+
+    "Go to next bit"
+    nextBit [
+        |b|
+        bitnum isNil ifTrue: [self clearBits].
+        bitnum = 0 ifTrue: [self fillBytes].
+        bitbuf isNil ifTrue: [ ^ nil ].
+        b := bitbuf value bitAt: bitnum.
+        bitnum := bitnum - 1.
+        ^ b.
+    ]
+
+    bitChar: char [
+        |bit char_val bit_idx|
+
+        char_val := char value.
+        bit_idx := 8.
+        [bit_idx ~= 0] whileTrue: [
+            bit := char_val bitAt: bit_idx.
+            bit_idx := bit_idx - 1.
+            self writeBit: bit.
+        ].
+
+        (char_val = 0) | (char_val = 256) ifTrue: [
+            self writeBit: (char_val bitAt: 9).
+        ].
+    ]
+
+    loadCharFreq: freq [
+        |char|
+
+        [self atEnd not] whileTrue: [
+            char := self next asInteger.
+            freq incr: char.
+        ].
+        char = nil ifFalse: [
+            freq incr: 256.
+        ].
+    ]
+
+    loadTree [
+        |stack pre_bit|
+
+        stack := Stack new: 256.
+        [self atEnd not] whileTrue: [
+            pre_bit := self nextBit.
+            pre_bit = 0 ifTrue: [
+                |bit bit_char bit_idx leaf|
+
+                bit_idx := 8.
+                bit_char := 0.
+                [bit_idx ~= 0] whileTrue: [
+                    bit := self nextBit.
+                    bit_char := bit_char bitAt: bit_idx put: bit.
+                    bit_idx := bit_idx - 1.
+                ].
+
+                leaf := Leaf new: (bit_char asCharacter) count: 0.
+                bit_char = 0 ifTrue: [
+                    bit := self nextBit.
+                    bit = 1 ifTrue: [
+                        leaf := Leaf new: 256 count: 0.
+                    ].
+                ].
+
+                stack push: leaf.
+            ].
+
+            pre_bit = 1 ifTrue: [
+                |left right tree|
+
+                right := stack pop.
+                stack size = 0 ifTrue: [
+                    self clearBits.
+                    ^ right
+                ].
+
+                left := stack pop.
+                tree := Tree new: left char count: 0 left: left right: right.
+                stack push: tree.
+            ].
+        ].
+    ]
+
+    compress: output_file with: code [
+        |key encode bit|
+
+        [self atEnd not] whileTrue: [
+            key := self next value.
+            encode := code at: key.
+            encode do: [:char |
+                bit := char asBit.
+                output_file writeBit: bit.
+            ].
+        ].
+
+        encode := code at: 256.
+        encode do: [:char |
+            bit := char asBit.
+            output_file writeBit: bit.
+        ].
+        output_file flushByte.
+    ]
+
+
+    decompress: output_file with: code [
+        |bit tree|
+
+        tree := code.
+        bit := 0.
+        [bit ~= nil] whileTrue: [
+            bit := self nextBit.
+            "If the bit == 0, go towards left"
+            bit = 0 ifTrue: [
+                tree := tree left.
+            ].
+            "If the bit == 1, go towards right"
+            bit = 1 ifTrue: [
+                tree := tree right.
+            ].
+
+            (tree isMemberOf: Leaf) ifTrue: [
+                |char|
+                tree char = 256 ifTrue: [ ^ char ].
+                char := Character value: tree char asInteger.
+                output_file nextPut: char.
+                tree := code.
+            ].
+        ].
+    ]
+]
+
+
+"Extend character to handle printing with ASCII codes"
+Character extend [
+    asBit [
+        ^ self value bitAt: 1.
+    ]
+
+    isPrint [
+        ^ (Character space < self) & (self <= $~)
+    ]
+
+    digits [
+        ^ (self asInteger) > 15
+    ]
+
+    visible [
+       self isPrint ifTrue: [^' ', self asString, ' ']
+                    ifFalse: [ self digits
+                        ifTrue: [((self asInteger) = 256)
+                            ifTrue: [ ^ 'EOF' ]
+                            ifFalse: [ ^ 'x', ((seld asInteger printStringRadix: 16) cpoyFrom: 4 )]
+                        ]
+                        ifFalse: [
+                            ^ 'x0', ((self asInteger printStringRadix: 16) copyFrom: 4)
+                        ]
+                    ]
+    ]
+]
+
+
+"**************************************************************************"
+"----------------------- Stack & Array & Tree & Leaf ----------------------"
+
 "Create Stack Object"
 Object subclass: Stack [
     |theArray top item|
@@ -60,7 +264,7 @@ Object subclass: Stack [
 "Example code from class course page - charfreq.st
  Create ZeroArray Object
  Will be used for frequency table & count frequency of input characters"
-Object subclass: ZeroArry [
+Object subclass: ZeroArray [
     "The main returning array of subclass"
     |theArray|
 
