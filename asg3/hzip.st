@@ -10,7 +10,7 @@ execname := '$RCSfile: hzip.st,v $' =~ '.*: (.*),v.*' at: 1.
 nl := Character nl.
 
 
-"Example from class course page - charfreq.st"
+"Example code from class course page - charfreq.st"
 "Create ZeroArray Object"
 "Will be used for frequency table & count frequency of input characters"
 Object subclass: ZeroArry [
@@ -63,6 +63,95 @@ Object subclass: ZeroArry [
 ]
 
 
+"Example code from class course page - tree.st"
+"Create Leaf Object"
+""
+Object subclass: Leaf [
+    |char count|
+    char [ ^ char ]
+    count [ ^ count ]
+
+    Leaf class >> new [
+        self shouldNotImplement
+    ]
+
+    Leaf class >> new: aChar count: aCount [
+        |result|
+        result := super new.
+        result setChar: aChar andCount: aCount.
+        ^result
+    ]
+
+    setChar: aChar andCount: aCount [
+        char := aChar.
+        count := aCount.
+    ]
+
+    <= other [
+        ^ (count < other count)
+        | ((count = other count) & (char <= other char))
+    ]
+
+    printBase: aStream [
+        ^ aStream << self class << '(' << char << ',' << count
+    ]
+
+    printOn: aStream [
+        (self printBase: aStream) << ')'.
+    ]
+
+    inorder: visitor prefix: string [
+        visitor value: char value: string.
+    ]
+
+    "New - to be able to write to file"
+    writeIn: outFile [
+        outFile writeBit: (0 bitAt: 1).
+        outFile bitChar: self char.
+    ]
+]
+
+"Example code from class course page - tree.st"
+"Create Tree Object"
+Leaf subclass: Tree [
+   |left right|
+   left [ ^ left ]
+   right [ ^ right ]
+
+    Tree class >> new: aChar count: aCount [
+        self shouldNotImplement
+    ]
+
+    Tree class >> new: aChar count: aCount left: aLeft right: aRight [
+        |result|
+        result := super new: aChar count: aCount.
+        result setLeft: aLeft andRight: aRight.
+        ^ result
+    ]
+
+    setLeft: aLeft andRight: aRight [
+        left := aLeft.
+        right := aRight.
+    ]
+
+    printOn: aStream [
+        (self printBase: aStream) << ',' << left << ',' << right << ')'.
+    ]
+
+    inorder: visitor prefix: string [
+        left inorder: visitor prefix: string, '0'.
+        right inorder: visitor prefix: string, '1'.
+    ]
+
+    "New - to be able to write to file"
+    writeIn: outFile [
+        left writeIn: outFile.
+        right writeIn: outFile.
+        outFile writeBit: (1 bitAt: 1).
+    ]
+]
+
+
 "**************************************************************************"
 "---------------------------------- Main ----------------------------------"
 
@@ -76,8 +165,6 @@ ifTrue: [
     stderr << execname << 'ERROR: lacking command line arguments.' << nl.
     ObjectMemory quit.
 ]
-
-
 
 "If the command line option is -t"
 cmdline_opt =~ 't' ifMatched: [
