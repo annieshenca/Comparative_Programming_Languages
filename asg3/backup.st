@@ -44,35 +44,36 @@ FileStream extend [
         bitnum := 0.
     ]
 
+
     fillByte [
         bitbuf := self next.
-        bitnum := 8.
+        bitnum := 0.
     ]
 
     "Go to next bit"
     nextBit [
-        |bit|
+        |b|
         bitnum isNil ifTrue: [self clearBits].
-        bitnum = 0 ifTrue: [self fillByte].
+        bitnum = 0 ifTrue: [self fillBytes].
         bitbuf isNil ifTrue: [ ^ nil ].
-        bit := bitbuf val bitAt: bitnum.
+        b := bitbuf value bitAt: bitnum.
         bitnum := bitnum - 1.
-        ^ bit.
+        ^ b.
     ]
 
     bitChar: char [
-        |bit charval bitidx|
+        |bit char_val bit_idx|
 
-        charval := char value.
-        bitidx := 8.
-        [bitidx ~= 0] whileTrue: [
-            bit := charval bitAt: bitidx.
-            bitidx := bitidx - 1.
+        char_val := char value.
+        bit_idx := 8.
+        [bit_idx ~= 0] whileTrue: [
+            bit := char_val bitAt: bit_idx.
+            bit_idx := bit_idx - 1.
             self writeBit: bit.
         ].
 
-        (charval = 0) | (charval = 256) ifTrue: [
-            self writeBit: (charval bitAt: 9).
+        (char_val = 0) | (char_val = 257) ifTrue: [
+            self writeBit: (char_val bitAt: 9).
         ].
     ]
 
@@ -84,51 +85,55 @@ FileStream extend [
             freqtable incr: char.
         ].
         char = nil ifFalse: [
-            freqtable incr: 256.
+            freqtable incr: 257.
         ].
     ]
 
     loadTree [
-        |stack preBit|
-        stack := Stack new: 256.
+        |stack pre_bit|
+
+        stack := Stack new: 257.
         [self atEnd not] whileTrue: [
-            preBit := self nextBit.
-            preBit = 0 ifTrue: [
-                |bit bitchar bitidx leaf|
-                bitchar := 0.
-                bitidx := 8.
-                [bitidx ~= 0] whileTrue: [
+            pre_bit := self nextBit.
+            pre_bit = 0 ifTrue: [
+                |bit bit_char bit_idx leaf|
+
+                bit_idx := 8.
+                bit_char := 0.
+                [bit_idx ~= 0] whileTrue: [
                     bit := self nextBit.
-                    bitchar := bitchar bitAt: bitidx put: bit.
-                    bitidx := bitidx - 1.
+                    bit_char := bit_char bitAt: bit_idx put: bit.
+                    bit_idx := bit_idx - 1.
                 ].
-                leaf := Leaf new: (bitchar asCharacter) count: 0.
-                bitchar = 0 ifTrue: [
+
+                leaf := Leaf new: (bit_char asCharacter) count: 0.
+                bit_char = 0 ifTrue: [
                     bit := self nextBit.
                     bit = 1 ifTrue: [
-                        leaf := Leaf new: 256 count: 0.
+                        leaf := Leaf new: 257 count: 0.
                     ].
                 ].
+
                 stack push: leaf.
             ].
 
-            preBit = 1 ifTrue: [
-                |leftT rightT tree|
+            pre_bit = 1 ifTrue: [
+                |left right tree|
 
-                rightT := stack pop.
+                right := stack pop.
                 stack size = 0 ifTrue: [
                     self clearBits.
-                    ^ rightT
+                    ^ right
                 ].
-                leftT := stack pop.
-                tree := Tree new: leftT char
-                count: 0 left: leftT right: rightT.
+
+                left := stack pop.
+                tree := Tree new: left char count: 0 left: left right: right.
                 stack push: tree.
             ].
         ].
     ]
 
-    compress: outfile with: code [
+    compress: output_file with: code [
         |key encode bit|
 
         [self atEnd not] whileTrue: [
@@ -136,35 +141,41 @@ FileStream extend [
             encode := code at: key.
             encode do: [:char |
                 bit := char asBit.
-                outfile writeBit: bit.
+                output_file writeBit: bit.
             ].
         ].
-        encode := code at: 256.
+
+        encode := code at: 257.
         encode do: [:char |
             bit := char asBit.
-            outfile writeBit: bit.
+            output_file writeBit: bit.
         ].
-        outfile flushByte.
+        output_file flushByte.
     ]
 
-    decompress: outfile with: tree [
-        |bit ctree|
-        ctree := tree.
+
+    decompress: output_file with: code [
+        |bit tree|
+
+        tree := code.
         bit := 0.
         [bit ~= nil] whileTrue: [
             bit := self nextBit.
+            "If the bit == 0, go towards left"
             bit = 0 ifTrue: [
-                ctree := tree left.
+                tree := tree left.
             ].
+            "If the bit == 1, go towards right"
             bit = 1 ifTrue: [
-                ctree := tree right.
+                tree := tree right.
             ].
-            (ctree isMemberOf: Leaf) ifTrue: [
+
+            (tree isMemberOf: Leaf) ifTrue: [
                 |char|
-                ctree char = 256 ifTrue: [ ^ char ].
-                char := Character value: ctree char asInteger.
-                outfile nextPut: char.
-                ctree := tree.
+                tree char = 257 ifTrue: [ ^ char ].
+                char := Character value: tree char asInteger.
+                output_file nextPut: char.
+                tree := code.
             ].
         ].
     ]
@@ -188,7 +199,7 @@ Character extend [
     visible [
        self isPrint ifTrue: [^' ', self asString, ' ']
                     ifFalse: [ self digits
-                        ifTrue: [((self asInteger) = 256)
+                        ifTrue: [((self asInteger) = 257)
                             ifTrue: [ ^ 'EOF' ]
                             ifFalse: [ ^ 'x', ((self asInteger printStringRadix: 16) copyFrom: 4 )]
                         ]
@@ -206,6 +217,7 @@ Character extend [
 "Create Stack Object"
 Object subclass: Stack [
     |theArray top item|
+    nl := Character nl.
 
     Stack class >> new [
         self shouldNotImplement.
@@ -227,12 +239,11 @@ Object subclass: Stack [
         ^ top.
     ]
 
-    nl := Character nl.
     "Take out and remove the item that's on the top of the stack.
      No need to specify which item."
     pop [
         top = 0 ifTrue: [
-            stderr << 'ERROR: pop - overflowing stack.' << nl.
+            stderr << ': ERROR: pop - overflowing stack.' << nl.
             ^ nil
         ].
         item := theArray at: top.
@@ -244,7 +255,7 @@ Object subclass: Stack [
     push: item [
         top := top + 1.
         top > self size ifTrue: [
-            ^ stderr << 'ERROR: push - overflowing stack.' << nl.
+            ^ stderr << ': ERROR: push - overflowing stack.' << nl.
         ].
         theArray at: top put: item.
     ]
@@ -295,9 +306,9 @@ Object subclass: ZeroArray [
     ]
 
     keysAndValuesDo: aBlock [
-        (0 to: (self size) - 1) do: [:index |
-            aBlock value: index value: (self at: index).
-        ]
+       (0 to: (self size) - 1) do: [:index |
+          aBlock value: index value: (self at: index).
+       ]
     ]
 ]
 
@@ -325,12 +336,6 @@ Object subclass: Leaf [
         count := aCount.
     ]
 
-    "Not sure what this does???!"
-    <= other [
-      ^ (count < other count)
-      | ((count = other count) & (char <= other char))
-    ]
-
     printBase: aStream [
         ^ aStream << self class << '(' << char << ',' << count
     ]
@@ -344,9 +349,9 @@ Object subclass: Leaf [
     ]
 
     "New - to be able to write to file"
-    writeIn: outfile [
-        outfile writeBit: (0 bitAt: 1).
-        outfile bitChar: self char.
+    writeIn: outFile [
+        outFile writeBit: (0 bitAt: 1).
+        outFile bitChar: self char.
     ]
 ]
 
@@ -383,45 +388,45 @@ Leaf subclass: Tree [
     ]
 
     "New - to be able to write to file"
-    writeIn: outfile [
-        left writeIn: outfile.
-        right writeIn: outfile.
-        outfile writeBit: (1 bitAt: 1).
+    writeIn: outFile [
+        left writeIn: outFile.
+        right writeIn: outFile.
+        outFile writeBit: (1 bitAt: 1).
     ]
 ]
 
 
 "**************************************************************************"
 "---------------------------------- Main ----------------------------------"
-nl := Character nl.
-cmdline := (Smalltalk getArgv: 1). "Start at 1, not 0 like most."
-inputFileName := (Smalltalk getArgv: 2).
-outputFileName := (Smalltalk getArgv: 3).
+
+cmdline_opt := (Smalltalk getArgv: 1). "Start at 1, not 0 like most."
+in_name := (Smalltalk getArgv: 2).
+out_name := (Smalltalk getArgv: 3).
 
 "If argument < 2, return error msg and exit the running program"
 Smalltalk arguments < 2
 ifTrue: [
-    stderr << 'ERROR: lacking command line arguments.' << nl.
+    stderr << execname << ': ERROR: lacking command line arguments.' << nl.
     ObjectMemory quit.
 ]
 
 "If the command line option is -t OR -c"
-cmdline =~ 't|c' ifMatched: [
+cmdline_opt =~ 't|c' ifMatched: [
 freqtable := ZeroArray new: 257.
     [
-        |infile|
+        |input_file|
         "Reading the original file"
-        infile := FileStream open: inputFileName mode: FileStream read.
-        infile loadCharFreq: freqtable.
+        input_file := FileStream open: in_name mode: FileStream read.
+        input_file loadCharFreq: freqtable.
         "Close input_file after first time done reading"
-        infile close.
+        input_file close.
 
     "In terms of error in reading input_file, flush the program and exit"
     ] on: SystemExceptions.FileError do: [:signal |
         |errno|
         errno := File errno.
         stdout flush.
-        stderr << 'ERROR: input file file error. ' << signal messageText << nl.
+        stderr << execname << ': ERROR: input file file error. ' << signal messageText << nl.
         stderr flush.
     ].
 ].
@@ -429,7 +434,7 @@ freqtable := ZeroArray new: 257.
 "Take care of queue and encoding table business
  Take queue and turn into encoded table
  SortedCollection from example code in class folder"
-cmdline =~ 't|c' ifMatched: [
+cmdline_opt =~ 't|c' ifMatched: [
     pqueue := SortedCollection new.
     freqtable keysAndValuesDo: [:key :val |
         (val notNil and: [val > 0]) ifTrue: [
@@ -438,7 +443,7 @@ cmdline =~ 't|c' ifMatched: [
         ]
     ].
     "If user also wants to show debug table with -d, check here and print"
-    cmdline =~ 'd' ifMatched: [
+    cmdline_opt =~ 'd' ifMatched: [
         pqueue inspect.
     ].
 ].
@@ -447,93 +452,90 @@ cmdline =~ 't|c' ifMatched: [
 "Take care of queue and encoding tree business
  Take queue and turn into encoded Huffman tree
  SortedCollection from example code in class folder"
-cmdline =~ 't|c' ifMatched: [
+cmdline_opt =~ 't|c' ifMatched: [
     [pqueue notEmpty] whileTrue: [
-        leftT := pqueue removeFirst.
-        pqueue size = 0 ifTrue: [^ leftT].
-        rightT := pqueue removeFirst.
-        newTree := Tree new: leftT char count: (leftT count + rightT count) left: leftT right: rightT.
+        tree := pqueue removeFirst.
+        pqueue size = 0 ifTrue: [^ tree].
+        right_tree := pqueue removeFirst.
+        newTree := Tree new: tree char count: (tree count + right_tree count) left: tree right: right_tree.
         pqueue add: newTree.
     ].
     "Print out in stdout the tree for debugging purposes"
-    cmdline =~ 'd' ifMatched: [
-        stdout << leftT << nl.
+    cmdline_opt =~ 'd' ifMatched: [
+        stdout << tree << nl.
     ].
 ].
 
 "Travel through the tree (formed from above)
  and turn into an array"
-cmdline =~ 't|c' ifMatched: [
-    code := ZeroArray new: 257.
+cmdline_opt =~ 't|c' ifMatched: [
+    en := ZeroArray new: 257.
     tree = nil ifFalse: [
         tree inorder: [:char :encoding |
-            code at: char asInteger put: encoding.
+            en at: char asInteger put: encoding.
         ] prefix: ''.
     ].
 ].
 
 "For option -t, forming frequency table with all that cool number stuff!"
-cmdline =~ 't' ifMatched: [
+cmdline_opt =~ 't' ifMatched: [
     freqtable keysAndValuesDo: [:key :val |
         (val notNil and: [val > 0]) ifTrue: [
-            |character|
-            character := (key asCharacter visible).
-            character asString size to: 2 do: [:skip|
+            |char|
+            char := (key asCharacter visible).
+            char asString size to: 2 do: [:skip|
                 stdout << ' '
             ].
-            stdout << character << ' '.
+            stdout << char << ' '.
             val asString size to: 5 do: [:skip|
                 stdout << ' '
             ].
             stdout << val << ' '.
-            stdout << (code at: key) << nl.
+            stdout << (encodings at: key) << nl.
         ]
     ]
 ].
 
 
 "For option -c, compressing the input_file!"
-cmdline =~ 'c' ifMatched: [
+cmdline_opt =~ 'c' ifMatched: [
     [
         |infile outfile|
-        infile := FileStream open: inputFileName mode: FileStream read.
-        filenameOut = nil ifTrue: [
+        infile := FileStream open: in_name mode: FileStream read.
+        out_name = nil ifTrue: [
             outfile := stdout.
         ]
         ifFalse: [
-            outfile := FileStream open: outputFileName mode: FileStream write.
+            outfile := FileStream open: out_name mode: FileStream write.
         ].
-
         tree = nil ifFalse: [
             tree writeIn: outfile.
             outfile writeBit: (1 bitAt: 1).
             outfile flushByte.
-            infile compress: outfile with: code.
+            infile compressTo: outfile with: encodings.
         ].
         outfile close.
         infile close.
-    ] on: SystemExceptions.FileError do: [:signal |
-        |errno|
-        errno := File errno.
+    ]on: SystemExceptions.FileError do: [:signal |
         stdout flush.
-        stderr << ': ERROR :' << signal messageText << nl.
+        stderr << execname << ': ERROR. ' << signal messageText << nl.
         stderr flush.
     ].
 ].
 
 
-"Decompress infile > outfile."
-cmdline =~ 'u' ifMatched: [
+"Decompress inFile > outFile."
+cmdline_opt =~ 'u' ifMatched: [
     [
         |infile outfile|
-        infile := FileStream open: inputFileName mode: FileStream read.
+        infile := FileStream open: in_name mode: FileStream read.
         tree := infile loadTree.
         tree = nil ifFalse: [
-            outputFileName = nil ifTrue: [
+            outfile = nil ifTrue: [
                 infile decompress: stdout with: tree.
             ]
             ifFalse: [
-                outfile := FileStream open: outputFileName mode: FileStream write.
+                outfile := FileStream open: outfile mode: FileStream write.
                 infile decompress: outfile with: tree.
                 outfile close.
             ].
@@ -541,11 +543,9 @@ cmdline =~ 'u' ifMatched: [
         infile close.
 
     ] on: SystemExceptions.FileError do: [:signal |
-        |errno|
-        errno := File errno.
         stdout flush.
-        stderr << 'ERROR : ' << signal messageText << nl.
+        stderr << 'ERROR: ' << signal messageText << nl.
         stderr flush.
     ].
-    cmdline =~ 'd' ifMatched: [stdout << tree << nl.].
+    cmdline_opt =~ 'd' ifMatched: [stdout << tree << nl.].
 ].
