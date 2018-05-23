@@ -440,7 +440,7 @@ cliOptions =~ 't' ifMatched: [
     (value notNil and: [value > 0]) ifTrue: [
        |character|
        character := (key asCharacter visible).
-       character asString size to: 3 do: [:skip| stdout << ' '].
+       character asString size to: 2 do: [:skip| stdout << ' '].
        stdout << character << ' '.
        value asString size to: 5 do: [:skip| stdout << ' '].
        stdout << value << ' '.

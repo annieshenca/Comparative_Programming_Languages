@@ -72,7 +72,7 @@ FileStream extend [
             self writeBit: bit.
         ].
 
-        (char_val = 0) | (char_val = 256) ifTrue: [
+        (char_val = 0) | (char_val = 257) ifTrue: [
             self writeBit: (char_val bitAt: 9).
         ].
     ]
@@ -85,14 +85,14 @@ FileStream extend [
             freq incr: char.
         ].
         char = nil ifFalse: [
-            freq incr: 256.
+            freq incr: 257.
         ].
     ]
 
     loadTree [
         |stack pre_bit|
 
-        stack := Stack new: 256.
+        stack := Stack new: 257.
         [self atEnd not] whileTrue: [
             pre_bit := self nextBit.
             pre_bit = 0 ifTrue: [
@@ -110,7 +110,7 @@ FileStream extend [
                 bit_char = 0 ifTrue: [
                     bit := self nextBit.
                     bit = 1 ifTrue: [
-                        leaf := Leaf new: 256 count: 0.
+                        leaf := Leaf new: 257 count: 0.
                     ].
                 ].
 
@@ -145,7 +145,7 @@ FileStream extend [
             ].
         ].
 
-        encode := code at: 256.
+        encode := code at: 257.
         encode do: [:char |
             bit := char asBit.
             output_file writeBit: bit.
@@ -172,7 +172,7 @@ FileStream extend [
 
             (tree isMemberOf: Leaf) ifTrue: [
                 |char|
-                tree char = 256 ifTrue: [ ^ char ].
+                tree char = 257 ifTrue: [ ^ char ].
                 char := Character value: tree char asInteger.
                 output_file nextPut: char.
                 tree := code.
@@ -199,7 +199,7 @@ Character extend [
     visible [
        self isPrint ifTrue: [^' ', self asString, ' ']
                     ifFalse: [ self digits
-                        ifTrue: [((self asInteger) = 256)
+                        ifTrue: [((self asInteger) = 257)
                             ifTrue: [ ^ 'EOF' ]
                             ifFalse: [ ^ 'x', ((seld asInteger printStringRadix: 16) cpoyFrom: 4 )]
                         ]
@@ -415,9 +415,9 @@ ifTrue: [
     ObjectMemory quit.
 ]
 
-"If the command line option is -t"
-cmdline_opt =~ 't' ifMatched: [
-freqtable := ZeroArray new: 256.
+"If the command line option is -t OR -c"
+cmdline_opt =~ 't|c' ifMatched: [
+freqtable := ZeroArray new: 257.
     [
         |input_file|
         "Reading the original file"
@@ -432,28 +432,131 @@ freqtable := ZeroArray new: 256.
         stderr << execname << ': ERROR: input file file error.' << nl.
         stderr flush.
     ].
-
-    "Take sort_queue and turn into encoded table"
-    "SortedCollection from example code in class folder"
-    sort_queue := SortedCollection new.
-    freqtable keysAndValuesDo:
 ].
 
-"If the command line option is -c"
+"Take care of queue and encoding table business
+ Take queue and turn into encoded table
+ SortedCollection from example code in class folder"
+cmdline_opt =~ 't|c' ifMatched: [
+    pqueue := SortedCollection new.
+    freqtable keysAndValuesDo: [:key :val |
+        (val notNil and: [val > 0]) ifTrue: [
+            newLeaf := Leaf new: (key asCharacter) count: val.
+            pqueue add: newLeaf.
+        ]
+    ].
+    "If user also wants to show debug table with -d, check here and print"
+    cmdline_opt =~ 'd' ifMatched: [
+        pqueue inspect.
+    ].
+].
+
+
+"Take care of queue and encoding tree business
+ Take queue and turn into encoded Huffman tree
+ SortedCollection from example code in class folder"
+cmdline_opt =~ 't|c' ifMatched: [
+    [pqueue notEmpty] whileTrue: [
+        tree := pqueue removeFirst.
+        pqueue size = 0 ifTrue: [^ tree].
+        right_tree := pqueue removeFirst.
+        newTree := Tree new: tree char count: (tree count + right_tree count) left: tree right: right_tree.
+        pqueue add: newTree.
+    ].
+    "Print out in stdout the tree for debugging purposes"
+    cmdline_opt =~ 'd' ifMatched: [
+        stdout << tree << nl.
+    ].
+].
+
+"Travel through the tree (formed from above)
+ and turn into an array"
+cmdline_opt =~ 't|c' ifMatched: [
+    en := ZeroArray new: 257.
+    tree = nil ifFalse: [
+        tree inorder: [:char :encoding |
+            en at: char asInteger put: encoding.
+        ] prefix: ''.
+    ].
+].
+
+"For option -t, forming frequency table with all that cool number stuff!"
+cmdline_opt =~ 't' ifMatched: [
+    freqtable keysAndValuesDo: [:key :val |
+        (val notNil and: [val > 0]) ifTrue: [
+            |char|
+            char := (key asCharacter visible).
+            char asString size to: 2 do: [:skip|
+                stdout << ' '
+            ].
+            stdout << char << ' '.
+            val asString size to: 5 do: [:skip|
+                stdout << ' '
+            ].
+            stdout << val << ' '.
+            stdout << (encodings at: key) << nl.
+        ]
+    ]
+].
+
+
+"For option -c, compressing the input_file!"
 cmdline_opt =~ 'c' ifMatched: [
+    [
+        |in_file out_file|
+        in_file := FileStream open: in_name mode: FileStream read.
+        out_name = nil ifTrue: [
+            out_file := stdout.
+        ]
+        ifFalse: [
+            out_file := FileStream open: out_name mode: FileStream write.
+        ].
+        tree = nil ifFalse: [
+            tree writeIn: out_file.
+            out_file writeBit: (1 bitAt: 1).
+            out_file flushByte.
+            in_file compressTo: out_file with: encodings.
+        ].
+        out_file close.
+        in_file close.
+    ]on: SystemExceptions.FileError do: [:signal |
+        stdout flush.
+        stderr << execname << ': ERROR.' << nl.
+        stderr flush.
+    ].
+].
 
 
-]
-"If the command line option is -u"
-cmdline_opt =~ 'u' ifMatched: [
+"Decompress inFile > outFile."
+cliOptions =~ 'u' ifMatched: [
+    [
+        |in_file out_file|
+        in_file := FileStream open: in_name mode: FileStream read.
+        tree := in_file loadTree.
+        tree = nil ifFalse: [
+            out_file = nil ifTrue: [
+                in_file decompress: stdout with: tree.
+            ]
+            ifFalse: [
+                out_file := FileStream open: out_file mode: FileStream write.
+                in_file decompress: out_file with: tree.
+                out_file close.
+            ].
+        ].
+        in_file close.
 
+    ] on: SystemExceptions.FileError do: [:signal |
+        stdout flush.
+        stderr << execname << ': ERROR.' << nl.
+        stderr flush.
+    ].
+    cmdline_opt =~ 'd' ifMatched: [stdout << tree << nl.].
+].
 
-]
-
-stdout << 'Hello, World!' << nl << RCSID << nl.
+"stdout << 'Hello, World!' << nl << RCSID << nl.
 
 status := 127.
 stderr << execname << ': ' << 'Quitting with status ' << status << nl.
-ObjectMemory quit: status.
+ObjectMemory quit: status."
 
 "TEST: hzip.st"
