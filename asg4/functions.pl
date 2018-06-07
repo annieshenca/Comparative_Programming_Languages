@@ -1,37 +1,42 @@
-% $Id: functions.pl,v 1.3 2016-11-08 15:04:13-08 - - $
+/* $Id: functions.pl,v 1.3 2016-11-08 15:04:13-08 - - $*/
 
-%
+/*
 % Annie Shen (ashen7)
 % CMPS 112 - Mackey
 % Asg 4 - Prolog Airline Reservation System
+*/
 
-
+/*
 %
 % ***************************************************************************
 % Provide result for the trip the user asked for
+*/
 fly(D, A) :-
     % printing out the flight info of departure and arrival
     airport(D, _, _, _ ),
     airport(A, _, _, _ ),
-    % Shows the paths in case where there is multiple desparts and arrivals.
+    % Shows the paths in case where there is multiple desparts and arrivals
     flightPath (D, A, [D], FLIGHT_PLAN, _),
     !,
     nl,
     writePath (FLIGHT_PLAN),
     true.
 
+/*
 %
 % ***************************************************************************
 % Error checkings. In case when the user is not being so smart
-% If user try to search the same place as both departure AND arrival... Why though
+% If user try to search the same place as both departure AND arrival  Why though
+*/
 fly (D, D) :-
     format('ERROR: No trip for path that the start and finish is the same place.'),
     nl,
     !,
     fail.
-
+/*
 %
-% If user asked for a path that does not exist.
+% If user asked for a path that does not exist
+*/
 fly (D, A) :-
     airport(D, _, _, _ ),
     airport(A, _, _, _ ),
@@ -39,28 +44,34 @@ fly (D, A) :-
     !,
     fail.
 
+/*
 %
-% If the user gave no departure and arrival places Of course fail
+% If the user did not provide departure and arrival places Of course fail
+*/
 fly (_, _) :-
     !,
     nl,
     fail.
 
-
+/*
 %
 % ***************************************************************************
 % Converts degrees and minutes into radians like the PDF liked it
+*/
 toRadians (DEGREES, MINUTES, RADIANS) :-
     X is DEGREES + MINUTES / 60,
     RADIANS is X * pi / 180.
 
+/*
 %
 % Converts some miles to FLIGHT_X hours based on 500mph avg. flight plane speed
+*/
 hoursFromMiles(MILES, HOURS) :-
     HOURS is MILES / 500.
-
+/*
 %
 % Grabs coordinates from airports and returns distance
+*/
 parseLatToLong (CODE1, CODE2, DIST) :-
 	airport   (CODE1, _, degmin(DEG_LAT1, M1), degmin(DEG_LONG1, M2)),
 	airport   (CODE2, _, degmin(DEG_LAT2, M3), degmin(DEG_LONG2, M4)),
@@ -69,9 +80,10 @@ parseLatToLong (CODE1, CODE2, DIST) :-
 	toRadians (DEG_LONG1, M2, LONG1),
 	toRadians (DEG_LONG2, M4, LONG2),
 	haversineRadians (LAT1, LONG1, LAT2, LONG2, DIST).
-
+/*
 %
 % Provided from Professor Mackeys website, in file functions pl
+*/
 haversineRadians (Lat1, Lon1, Lat2, Lon2, Dist) :-
    Dlon is Lon2 - Lon1,
    Dlat is Lat2 - Lat1,
@@ -79,14 +91,16 @@ haversineRadians (Lat1, Lon1, Lat2, Lon2, Dist) :-
       + cos(Lat1) * cos(Lat2) * sin(Dlon / 2) ** 2,
    D is 2 * atan2(sqrt(A), sqrt(1 - A)),
    Dist is D * 3961.
-
+/*
 %
 % Converts hours and minutes into just hours
+*/
 toHours (time(HOUR,MIN), HOURS) :-
     HOURS is HOUR + MIN / 60.
-
+/*
 %
 % Print the time variable
+*/
 printTime (TOTAL_HOURS) :-
     TOTAL_MINUTES is floor(TOTAL_HOURS * 60 ),
     HOURS is TOTAL_MINUTES // 60,
@@ -105,11 +119,12 @@ printTime (TOTAL_HOURS) :-
     	FULL_TIME >= 10,
     	print(FULL_TIME).
 
-
+/*
+%
 % ***************************************************************************
 % Generates a flight plan from ARRIVAL -> DEST keeps track of LEG(s) of trip
 % Prints every leg till DEST, while ensuring trip is not longer than 24 hrs
-
+*/
 flightPath (AIRPORT, AIRPORT, _, [AIRPORT], _).
 
 flightPath (PREVIOUS_AIRPORT, AIRPORT, LEG, [[PREVIOUS_AIRPORT, DEPATURE_TIME, ARRIVAL_TIME] | CLIST], DEPARTURE_TIME_RAW) :-
@@ -136,19 +151,21 @@ flightPath (PREVIOUS_AIRPORT, AIRPORT, LEG, [[PREVIOUS_AIRPORT, DEPATURE_TIME, A
     ARRIVAL_TIME < 24.0,
     flight_path (DEST_AIRPORT, AIRPORT, [DEST_AIRPORT | LEG], CLIST, NEXT_FLIGHT_TIME_RAW).
 
-
+/*
 %
 % ***************************************************************************
 % Helper function Not. Found in Processor s example file graphpaths pl
+*/
 not (X) :- X, !, fail.
-% Should not be used? But in case if passing in nothing then nothing happens
+/*% Should not be used? But in case if passing in nothing then nothing happens*/
 not (_).
 
-
+/*
 %
 % ***************************************************************************
 % Function to print out the flight path
 % if the function was called without any arguments, return nothing
+*/
 writePath ([]) :-
     nl.
 
