@@ -8,11 +8,11 @@
 
 %
 % ***************************************************************************
-% Provide result for the trip the user asked for.
+% Provide result for the trip the user asked for
 fly(D, A) :-
     % printing out the flight info of departure and arrival
-    airport (D, _, _, _ ),
-    airport (A, _, _, _ ),
+    airport(D, _, _, _ ),
+    airport(A, _, _, _ ),
     % Shows the paths in case where there is multiple desparts and arrivals.
     flightPath (D, A, [D], FLIGHT_PLAN, _),
     !,
@@ -22,8 +22,8 @@ fly(D, A) :-
 
 %
 % ***************************************************************************
-% Error checkings. In case when the user is not being so smart.
-% If user try to search the same place as both departure AND arrival... Why though?
+% Error checkings. In case when the user is not being so smart
+% If user try to search the same place as both departure AND arrival... Why though
 fly (D, D) :-
     format('ERROR: No trip for path that the start and finish is the same place.'),
     nl,
@@ -40,7 +40,7 @@ fly (D, A) :-
     fail.
 
 %
-% If the user gave no departure and arrival places. Of course fail.
+% If the user gave no departure and arrival places Of course fail
 fly (_, _) :-
     !,
     nl,
@@ -55,7 +55,7 @@ toRadians (DEGREES, MINUTES, RADIANS) :-
     RADIANS is X * pi / 180.
 
 %
-% Converts some miles to FLIGHT_X hours based on 500mph avg. flight plane speed.
+% Converts some miles to FLIGHT_X hours based on 500mph avg. flight plane speed
 hoursFromMiles(MILES, HOURS) :-
     HOURS is MILES / 500.
 
@@ -71,7 +71,7 @@ parseLatToLong (CODE1, CODE2, DIST) :-
 	haversineRadians (LAT1, LONG1, LAT2, LONG2, DIST).
 
 %
-% Provided from Professor Mackeys website, in file functions.pl
+% Provided from Professor Mackeys website, in file functions pl
 haversineRadians (Lat1, Lon1, Lat2, Lon2, Dist) :-
    Dlon is Lon2 - Lon1,
    Dlat is Lat2 - Lat1,
@@ -81,12 +81,12 @@ haversineRadians (Lat1, Lon1, Lat2, Lon2, Dist) :-
    Dist is D * 3961.
 
 %
-% Converts hours and minutes into just hours.
+% Converts hours and minutes into just hours
 toHours (time(HOUR,MIN), HOURS) :-
     HOURS is HOUR + MIN / 60.
 
 %
-% Print the time variable.
+% Print the time variable
 printTime (TOTAL_HOURS) :-
     TOTAL_MINUTES is floor(TOTAL_HOURS * 60 ),
     HOURS is TOTAL_MINUTES // 60,
@@ -95,18 +95,17 @@ printTime (TOTAL_HOURS) :-
     write(':'),
     print_digits(MINUTES).
 
-    % Prints time when time is in hte formate of 01:00.
+    % Prints time when time is in hte formate of 01:00
 	printDigits (FULL_TIME) :-
     	FULL_TIME < 10,
     	format('0~w', [FULL_TIME]).
 
-	% Prints time when time is in the formate of 23:00.
+	% Prints time when time is in the formate of 23:00
 	printDigits (FULL_TIME) :-
     	FULL_TIME >= 10,
     	print(FULL_TIME).
 
 
-%
 % ***************************************************************************
 % Generates a flight plan from ARRIVAL -> DEST keeps track of LEG(s) of trip
 % Prints every leg till DEST, while ensuring trip is not longer than 24 hrs
@@ -140,16 +139,16 @@ flightPath (PREVIOUS_AIRPORT, AIRPORT, LEG, [[PREVIOUS_AIRPORT, DEPATURE_TIME, A
 
 %
 % ***************************************************************************
-% Helper function Not. Found in Processor s example file graphpaths.pl
+% Helper function Not. Found in Processor s example file graphpaths pl
 not (X) :- X, !, fail.
-% Should not be used? But in case if passing in nothing then nothing happens.
+% Should not be used? But in case if passing in nothing then nothing happens
 not (_).
 
 
 %
 % ***************************************************************************
-% Function to print out the flight path.
-% if the function was called without any arguments, return nothing.
+% Function to print out the flight path
+% if the function was called without any arguments, return nothing
 writePath ([]) :-
     nl.
 
