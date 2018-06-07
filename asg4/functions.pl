@@ -106,6 +106,7 @@ printTime (TOTAL_HOURS) :-
     	print(FULL_TIME).
 
 
+%
 % ***************************************************************************
 % Generates a flight plan from ARRIVAL -> DEST keeps track of LEG(s) of trip
 % Prints every leg till DEST, while ensuring trip is not longer than 24 hrs
