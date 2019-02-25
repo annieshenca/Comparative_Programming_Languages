@@ -1,7 +1,0 @@
-hello hello hello
-I am a file here to test if compressing and 
-decompressing works on this test file.
-
-I hope this file comes back normal and working!!!
-
-okay bye.
